@@ -2,8 +2,9 @@
 
 import {
   Button,
-  Chip,
   Image,
+  Pagination,
+  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -12,30 +13,66 @@ import {
   TableRow,
 } from '@nextui-org/react';
 
-import { rooms } from '../../../../_fixtures';
+import { Room, room2, rooms } from '../../../../../_fixtures';
 import Link from 'next/link';
 import paths from '@/paths';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+
+async function getUsers(page: number) {
+  const data = new Promise((r) =>
+    setTimeout(() => {
+      if (page === 1) r(rooms);
+      else r(room2);
+    }, 2000)
+  );
+
+  return data as unknown as Room[];
+}
 
 const RoomTable = () => {
+  const [page, setPage] = useState(1);
+  const { data, isPending } = useQuery({
+    queryKey: ['test', page],
+    queryFn: () => getUsers(page),
+  });
+
+  const loadingState = isPending ? 'loading' : 'idle';
+
   return (
-    <Table>
+    <Table
+      bottomContent={
+        <div className="flex w-full justify-center">
+          <Pagination
+            isCompact
+            total={2}
+            page={page}
+            onChange={(page) => setPage(page)}
+          />
+        </div>
+      }
+    >
       <TableHeader>
         <TableColumn width={300}>
           <div>THUMBNAIl</div>
         </TableColumn>
-        <TableColumn>
+        <TableColumn width={700}>
           <div>TITLE</div>
         </TableColumn>
-        <TableColumn>STATUS</TableColumn>
+        <TableColumn width={200}>STATUS</TableColumn>
       </TableHeader>
 
-      <TableBody items={rooms} emptyContent={'참여 가능한 방이 없습니다.'}>
+      <TableBody
+        items={data ?? []}
+        emptyContent={isPending ? <Spinner /> : '참여 가능한 방이 없습니다.'}
+        loadingState={loadingState}
+      >
         {({
           capacity,
           currentParticipant,
           roomCode,
           roomTitle,
-          thumbnail,
+          videoThumbnail,
           videoTitle,
         }) => {
           const isFull = currentParticipant >= capacity;
