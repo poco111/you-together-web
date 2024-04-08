@@ -3,7 +3,6 @@
 import {
   Button,
   Image,
-  Pagination,
   Spinner,
   Table,
   TableBody,
@@ -13,43 +12,36 @@ import {
   TableRow,
 } from '@nextui-org/react';
 
-import { Room, room2, rooms } from '../../../../../_fixtures';
 import Link from 'next/link';
 import paths from '@/paths';
-import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-
-async function getUsers(page: number) {
-  const data = new Promise((r) =>
-    setTimeout(() => {
-      if (page === 1) r(rooms);
-      else r(room2);
-    }, 2000)
-  );
-
-  return data as unknown as Room[];
-}
+import { useRooms } from '@/hooks/use-rooms';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 
 const RoomTable = () => {
-  const [page, setPage] = useState(1);
-  const { data, isPending } = useQuery({
-    queryKey: ['test', page],
-    queryFn: () => getUsers(page),
+  const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useRooms();
+
+  useIntersectionObserver({
+    targetId: 'load-more-trigger',
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage && !isFetchingNextPage,
   });
 
+  const rooms = data?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
 
   return (
     <Table
+      aria-label="방 목록"
       bottomContent={
-        <div className="flex w-full justify-center">
-          <Pagination
-            isCompact
-            total={2}
-            page={page}
-            onChange={(page) => setPage(page)}
-          />
-        </div>
+        <>
+          {isFetchingNextPage ? (
+            <div className="flex w-full justify-center">
+              <Spinner color="white" />
+            </div>
+          ) : null}
+          <div id="load-more-trigger" className="h-2" />
+        </>
       }
     >
       <TableHeader>
@@ -63,7 +55,7 @@ const RoomTable = () => {
       </TableHeader>
 
       <TableBody
-        items={data ?? []}
+        items={rooms ?? []}
         emptyContent={isPending ? <Spinner /> : '참여 가능한 방이 없습니다.'}
         loadingState={loadingState}
       >
@@ -83,8 +75,8 @@ const RoomTable = () => {
                 <Image
                   width={150}
                   height={100}
-                  alt="NextUI hero Image with delay"
-                  src="https://app.requestly.io/delay/5000/https://nextui-docs-v2.vercel.app/images/hero-card-complete.jpeg"
+                  alt="썸네일"
+                  src={videoThumbnail}
                 />
               </TableCell>
               <TableCell>
