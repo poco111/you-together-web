@@ -1,4 +1,4 @@
-import CreateRoomModal from '@/components/create-room-modal';
+import CreateRoomModal from '@/components/create-room-modal-form';
 import paths from '@/paths';
 import {
   Navbar,

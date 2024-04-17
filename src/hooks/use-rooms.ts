@@ -1,9 +1,9 @@
-import { PaginatedRooms, getRooms } from '@/api/roomService';
+import { getRooms } from '@/api/get-rooms';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 export const useRooms = () => {
   const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery<PaginatedRooms>({
+    useInfiniteQuery<TRoomsListData>({
       queryKey: ['rooms'],
       queryFn: ({ pageParam = 0 }) => getRooms(pageParam as number),
       initialPageParam: 0,
