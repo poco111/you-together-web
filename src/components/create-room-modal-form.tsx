@@ -15,22 +15,24 @@ import {
   useDisclosure,
   Input,
 } from '@nextui-org/react';
+import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 const CreateRoomModal = () => {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const { mutate, isPending } = useCreateRoom();
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<TRoomCreationPayload>({
     resolver: zodResolver(roomCreationSchema),
   });
-  const { mutate, isPending } = useCreateRoom();
 
   const onSubmit: SubmitHandler<TRoomCreationPayload> = (payload) => {
-    mutate(payload);
+    mutate(payload, {
+      onSettled: () => onClose,
+    });
   };
 
   return (
