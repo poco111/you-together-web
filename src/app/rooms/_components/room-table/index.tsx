@@ -30,6 +30,10 @@ const RoomTable = () => {
   const rooms = data?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
 
+  const joinRoom = () => {
+    
+  }
+
   return (
     <Table
       aria-label="방 목록"
@@ -92,7 +96,7 @@ const RoomTable = () => {
               <TableCell>
                 <Button
                   as={Link}
-                  href={paths.home()}
+                  href={paths.room(roomCode)}
                   color={isFull ? 'danger' : 'primary'}
                   variant={isFull ? 'flat' : 'solid'}
                   isDisabled={isFull}

@@ -1,6 +1,7 @@
 'use client';
 
 import useCreateRoom from '@/hooks/use-create-room';
+import paths from '@/paths';
 import {
   TRoomCreationPayload,
   roomCreationSchema,
@@ -15,12 +16,13 @@ import {
   useDisclosure,
   Input,
 } from '@nextui-org/react';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 const CreateRoomModal = () => {
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const { mutate, isPending } = useCreateRoom();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -31,7 +33,13 @@ const CreateRoomModal = () => {
 
   const onSubmit: SubmitHandler<TRoomCreationPayload> = (payload) => {
     mutate(payload, {
-      onSettled: () => onClose,
+      onSuccess: ({ roomCode }) => {
+        onClose();
+        router.push(paths.room(roomCode));
+      },
+      onError: (e) => {
+        console.log(e, '123');
+      },
     });
   };
 

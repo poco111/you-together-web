@@ -5,6 +5,9 @@ const paths = {
   rooms() {
     return '/rooms';
   },
+  room(roomslug: string) {
+    return `/rooms/${roomslug}`;
+  },
 };
 
 export default paths;

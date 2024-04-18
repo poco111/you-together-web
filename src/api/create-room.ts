@@ -15,12 +15,13 @@ export const createRoom = async ({
       capacity,
       password: password || null,
     }),
+    credentials: 'include',
   });
 
   if (!response.ok) {
     throw new Error('방 생성 실패');
   }
 
-  const roomCreationData: TRoomCreationResponseData = await response.json();
-  return roomCreationData;
+  const data: TRoomCreationResponse = await response.json();
+  return data.data;
 };
