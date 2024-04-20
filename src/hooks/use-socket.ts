@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef } from 'react';
 import SockJs from 'sockjs-client';
 import StompJs, { Client } from '@stomp/stompjs';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToken } from './use-token';
 
 interface useSocketProps {
   roomCode: string;
@@ -43,12 +44,15 @@ const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
 
 const useSocket = ({ roomCode }: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const { data: token } = useToken();
   const queryClient = useQueryClient();
   const clientRef = useRef<StompJs.Client | null>(null);
 
   useEffect(() => {
     dispatch({ type: 'LOADING' });
-    const socket = new SockJs(`${process.env.NEXT_PUBLIC_BASE_URL}/stomp`);
+    const socket = new SockJs(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/stomp?Authorization=Bearer ${token}`
+    );
     const stompClient = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
@@ -56,7 +60,6 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     });
 
     stompClient.onConnect = () => {
-      console.log('connected');
       clientRef.current = stompClient;
 
       stompClient.subscribe(`/sub/messages/rooms/${roomCode}`, (message) => {
@@ -91,7 +94,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     return () => {
       stompClient.deactivate();
     };
-  }, [roomCode, queryClient]);
+  }, [roomCode, queryClient, token]);
 
   const sendChat = (content: string) => {
     if (!clientRef.current) return;

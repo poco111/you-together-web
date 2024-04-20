@@ -33,13 +33,15 @@ const CreateRoomModal = () => {
 
   const onSubmit: SubmitHandler<TRoomCreationPayload> = (payload) => {
     mutate(payload, {
-      onSuccess: ({ roomCode }) => {
+      onSuccess: ({
+        data: {
+          data: { roomCode },
+        },
+      }) => {
         onClose();
         router.push(paths.room(roomCode));
       },
-      onError: (e) => {
-        console.log(e, '123');
-      },
+      onError: (e) => {},
     });
   };
 

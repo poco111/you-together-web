@@ -8,7 +8,8 @@ const useCreateRoom = () => {
   return useMutation({
     mutationFn: ({ title, capacity, password }: TRoomCreationPayload) =>
       createRoom({ title, capacity, password }),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      queryClient.setQueryData(['token'], response.headers['authorization']);
       queryClient.invalidateQueries({ queryKey: ['rooms'] });
     },
   });
