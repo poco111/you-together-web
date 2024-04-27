@@ -16,3 +16,5 @@ type TRoomsListData = {
 };
 
 type TRoomsListResponse = ApiResponse<TRoomsListData>;
+
+// 방 목록 응답 데이터 타입

@@ -1,3 +1,5 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 테일윈드 설정 색이나 이런거 커스텀해서 쓸거면 테일윈드 공식 문서 보고 여기다 설정 바꾸면 됨 */

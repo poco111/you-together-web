@@ -1,28 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
 
-// export const joinRoom = async ({
-//   roomCode,
-// }: {
-//   roomCode: string;
-// }): Promise<TRoomCreationResponseData> => {
-//   const response = await fetch(
-//     `${process.env.NEXT_PUBLIC_BASE_URL}/rooms/${roomCode}`,
-//     {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       credentials: 'include',
-//     }
-//   );
-
-//   if (!response.ok) {
-//     throw new Error('방 참여 실패');
-//   }
-
-//   const data: TRoomCreationResponse = await response.json();
-//   return data.data;
-// };
+// 방 참여 함수
+// 서버에 api 명세 보고 그냥 그대로 post 날린거
+// axios 쓴 이유는 쿠키써서. create room과 동일
 
 export const joinRoom = async ({
   roomCode,

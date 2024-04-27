@@ -9,6 +9,9 @@ import {
 } from '@nextui-org/react';
 import Link from 'next/link';
 
+// 그냥 네브바.. ㅇㅇ
+// CreateRoomModal 이컴포넌트는 방생성 모달 띄우기 위한 컴포넌트
+
 const NavBar = () => {
   return (
     <Navbar className="shadow-gray-800 shadow-lg ">

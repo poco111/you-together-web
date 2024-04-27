@@ -18,11 +18,17 @@ import { useRooms } from '@/hooks/use-rooms';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import useJoinRoom from '@/hooks/use-join-room';
 
+// 방 리스트 컴포넌트
+// useRooms는 리액트 쿼리 래핑한 커스텀훅. 다만 여기는 무한 스크롤
+// useJoinRoom도 리액트 쿼리 래핑한 커스텀훅
+
 const RoomTable = () => {
   const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useRooms();
   const { mutate: joinRoom } = useJoinRoom();
 
+  // 인터섹션 옵저버로 타겟 아이디에 스크롤 걸리면 리액트 쿼리 무한 스크롤의 다음 페이지 가져오기 호출
+  // enabled는 다음 페이지 있고 페칭중 아닐때만 다음 페이지 가져오게
   useIntersectionObserver({
     targetId: 'load-more-trigger',
     onIntersect: fetchNextPage,
@@ -31,6 +37,8 @@ const RoomTable = () => {
 
   const rooms = data?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
+
+  // 방 참가하기 버튼 클릭하면 리액트 쿼리 mutate(post method라서)
   const handleJoin = (roomCode: string) => {
     joinRoom({ roomCode });
   };

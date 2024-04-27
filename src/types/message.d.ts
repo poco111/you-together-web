@@ -28,3 +28,6 @@ type TWebSocketMessage =
   | TChatMessage
   | TParticipantsInfoMessage
   | TRoomTitleMessage;
+
+// 소켓 메세지 관련한 타입
+// 각 메세지 별로 타입 따로 정의하고 웹소켓 메세지에서 유니온

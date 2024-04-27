@@ -7,6 +7,10 @@ interface UseIntersectionObserverProps {
   threshold?: number;
 }
 
+// 인터섹션 옵저버 로직 추상화해서 커스텀 훅으로 뺌
+// 무한 스크롤말고는 딱히 쓸 곳 없을듯
+// gpt 드리븐이라 원리 궁금하면 api 뜯어봐야 될듯
+
 export const useIntersectionObserver = ({
   targetId,
   onIntersect,
