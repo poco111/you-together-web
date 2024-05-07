@@ -19,8 +19,14 @@ import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import useJoinRoom from '@/hooks/use-join-room';
 
 const RoomTable = () => {
-  const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
-    useRooms();
+  const {
+    data: roomData,
+    isPending,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useRooms();
+
   const { mutate: joinRoom } = useJoinRoom();
 
   useIntersectionObserver({
@@ -29,7 +35,7 @@ const RoomTable = () => {
     enabled: hasNextPage && !isFetchingNextPage,
   });
 
-  const rooms = data?.pages.map((page) => page.rooms).flat();
+  const roomsList = roomData?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
   const handleJoin = (roomCode: string) => {
     joinRoom({ roomCode });
@@ -60,7 +66,7 @@ const RoomTable = () => {
       </TableHeader>
 
       <TableBody
-        items={rooms ?? []}
+        items={roomsList ?? []}
         emptyContent={isPending ? <Spinner /> : '참여 가능한 방이 없습니다.'}
         loadingState={loadingState}
       >
