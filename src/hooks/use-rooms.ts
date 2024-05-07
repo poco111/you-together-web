@@ -5,7 +5,7 @@ export const useRooms = () => {
   const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useInfiniteQuery<TRoomsListData>({
       queryKey: ['rooms'],
-      queryFn: ({ pageParam = 0 }) => getRooms(pageParam as number),
+      queryFn: ({ pageParam }) => getRooms(pageParam as number),
       initialPageParam: 0,
       getNextPageParam: ({ hasNext, pageNumber }) =>
         hasNext ? pageNumber + 1 : null,

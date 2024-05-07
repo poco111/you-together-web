@@ -8,12 +8,19 @@ type TChatMessage = TBaseMessage & {
   userId: number;
   nickname: string;
   content: string;
+  createdAt: string;
+};
+
+type TAlarmsMessage = TBaseMessage & {
+  messageType: 'ALARM';
+  content: string;
+  createdAt: string;
 };
 
 type TParticipantsInfoMessage = TBaseMessage & {
-  messageType: 'PARTICIPANTS_INFO';
+  messageType: 'PARTICIPANTS';
   participants: Array<{
-    userId: number;
+    id: number;
     nickname: string;
     role: 'VIEWER' | 'GUEST' | 'EDITOR' | 'MANAGER' | 'HOST';
   }>;
@@ -27,4 +34,5 @@ type TRoomTitleMessage = TBaseMessage & {
 type TWebSocketMessage =
   | TChatMessage
   | TParticipantsInfoMessage
-  | TRoomTitleMessage;
+  | TRoomTitleMessage
+  | TAlarmsMessage;

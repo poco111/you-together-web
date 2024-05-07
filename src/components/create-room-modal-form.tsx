@@ -1,7 +1,6 @@
 'use client';
 
 import useCreateRoom from '@/hooks/use-create-room';
-import paths from '@/paths';
 import {
   TRoomCreationPayload,
   roomCreationSchema,
@@ -16,13 +15,19 @@ import {
   useDisclosure,
   Input,
 } from '@nextui-org/react';
-import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import useJoinRoom from '@/hooks/use-join-room';
 
 const CreateRoomModal = () => {
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const {
+    isOpen: isCreateRoomModalOpen,
+    onOpen: onCreateRoomModalOpen,
+    onOpenChange: onCreateRoomModalOpenChange,
+    onClose: onCreateRoomModalClose,
+  } = useDisclosure();
+
   const { mutate, isPending } = useCreateRoom();
-  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -30,18 +35,22 @@ const CreateRoomModal = () => {
   } = useForm<TRoomCreationPayload>({
     resolver: zodResolver(roomCreationSchema),
   });
+  const { mutate: joinRoom } = useJoinRoom();
 
-  const onSubmit: SubmitHandler<TRoomCreationPayload> = (payload) => {
+  const handleCreateRoom: SubmitHandler<TRoomCreationPayload> = (payload) => {
     mutate(payload, {
       onSuccess: ({
         data: {
           data: { roomCode },
         },
       }) => {
-        onClose();
-        router.push(paths.room(roomCode));
+        onCreateRoomModalClose();
+        joinRoom({ roomCode });
       },
-      onError: (e) => {},
+      onError: () => {
+        onCreateRoomModalClose();
+        // 에러 모달 처리
+      },
     });
   };
 
@@ -49,14 +58,17 @@ const CreateRoomModal = () => {
     <>
       <span
         className="font-semibold text-large cursor-pointer"
-        onClick={onOpen}
+        onClick={onCreateRoomModalOpen}
       >
         방 만들기
       </span>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal
+        isOpen={isCreateRoomModalOpen}
+        onOpenChange={onCreateRoomModalOpenChange}
+      >
         <ModalContent>
-          {(onClose) => (
+          {(onCreateRoomModalClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
                 방 만들기
@@ -64,7 +76,7 @@ const CreateRoomModal = () => {
               <ModalBody>
                 <form
                   className="flex flex-col gap-6"
-                  onSubmit={handleSubmit(onSubmit)}
+                  onSubmit={handleSubmit(handleCreateRoom)}
                 >
                   <Input
                     defaultValue=""
@@ -93,7 +105,7 @@ const CreateRoomModal = () => {
                       color="danger"
                       size="lg"
                       variant="light"
-                      onPress={onClose}
+                      onPress={onCreateRoomModalClose}
                       className="flex-grow"
                     >
                       취소
