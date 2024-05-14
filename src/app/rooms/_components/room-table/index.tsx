@@ -16,7 +16,7 @@ import Link from 'next/link';
 import paths from '@/paths';
 import { useRooms } from '@/hooks/use-rooms';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
-import useJoinRoom from '@/hooks/use-join-room';
+import { useRouter } from 'next/navigation';
 
 const RoomTable = () => {
   const {
@@ -27,7 +27,7 @@ const RoomTable = () => {
     isFetchingNextPage,
   } = useRooms();
 
-  const { mutate: joinRoom } = useJoinRoom();
+  const router = useRouter();
 
   useIntersectionObserver({
     targetId: 'load-more-trigger',
@@ -38,7 +38,7 @@ const RoomTable = () => {
   const roomsList = roomData?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
   const handleJoin = (roomCode: string) => {
-    joinRoom({ roomCode });
+    router.push(paths.room(roomCode));
   };
 
   return (
