@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef } from 'react';
 import SockJs from 'sockjs-client';
 import StompJs, { Client } from '@stomp/stompjs';
 import { useQueryClient } from '@tanstack/react-query';
+import { joinRoom } from '@/api/join-room';
 
 interface useSocketProps {
   roomCode: string;
@@ -45,61 +46,72 @@ const useSocket = ({ roomCode }: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const queryClient = useQueryClient();
   const clientRef = useRef<StompJs.Client | null>(null);
+  const hasJoinedRef = useRef<boolean>(false); // 추가: 중복 실행 방지
 
   useEffect(() => {
     dispatch({ type: 'LOADING' });
-    const socket = new SockJs(`${process.env.NEXT_PUBLIC_BASE_URL}/stomp`);
-    const stompClient = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
-      debug: (str) => console.log(new Date(), str),
-    });
 
-    stompClient.onConnect = () => {
-      clientRef.current = stompClient;
+    const joinRoomHandler = async () => {
+      try {
+        const response = await joinRoom({ roomCode });
+        queryClient.setQueryData<TUserInfo>(
+          ['userInfo', roomCode],
+          () => response.data.data.user
+        );
+        const socket = new SockJs(`${process.env.NEXT_PUBLIC_BASE_URL}/stomp`);
+        const stompClient = new Client({
+          webSocketFactory: () => socket,
+          reconnectDelay: 5000,
+          debug: (str) => console.log(new Date(), str),
+        });
 
-      stompClient.subscribe(`/sub/messages/rooms/${roomCode}`, (message) => {
-        const response = JSON.parse(message.body) as TWebSocketMessage;
+        stompClient.onConnect = () => {
+          clientRef.current = stompClient;
+          stompClient.subscribe(
+            `/sub/messages/rooms/${roomCode}`,
+            (message) => {
+              const response = JSON.parse(message.body) as TWebSocketMessage;
+              switch (response.messageType) {
+                case 'CHAT':
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['chat', roomCode],
+                    (old) => [...(old ?? []), response]
+                  );
+                  break;
+                case 'ALARM':
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['chat', roomCode],
+                    (old) => [...(old ?? []), response]
+                  );
+                  break;
+                case 'PARTICIPANTS':
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['participants', roomCode],
+                    [response]
+                  );
+                  break;
+                case 'ROOM_TITLE':
+              }
+            }
+          );
 
-        switch (response.messageType) {
-          case 'CHAT':
-            queryClient.setQueryData<TWebSocketMessage[]>(
-              ['chat', roomCode],
-              (old) => [...(old ?? []), response]
-            );
-            break;
-          case 'ALARM':
-            queryClient.setQueryData<TWebSocketMessage[]>(
-              ['chat', roomCode],
-              (old) => [...(old ?? []), response]
-            );
-            break;
-          case 'PARTICIPANTS':
-            queryClient.setQueryData<TWebSocketMessage[]>(
-              ['participants', roomCode],
-              [response]
-            );
-            break;
-          case 'ROOM_TITLE':
-        }
-      });
-
-      dispatch({ type: 'SUCCESS' });
+          dispatch({ type: 'SUCCESS' });
+        };
+        stompClient.activate();
+      } catch (error) {
+        dispatch({ type: 'ERROR', message: '방에 참가하지 못했습니다.' });
+      }
     };
 
-    stompClient.onStompError = (frame) => {
-      console.error('Broker reported error: ' + frame.headers['message']);
-      console.error('Additional details: ' + frame.body);
-      dispatch({
-        type: 'ERROR',
-        message: `연결 오류: ${frame.headers['message']}`,
-      });
-    };
-
-    stompClient.activate();
+    if (!hasJoinedRef.current) {
+      joinRoomHandler();
+      hasJoinedRef.current = true;
+    }
 
     return () => {
-      stompClient.deactivate();
+      if (clientRef.current) {
+        clientRef.current.deactivate();
+      }
     };
   }, [roomCode, queryClient]);
 

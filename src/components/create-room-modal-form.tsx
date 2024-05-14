@@ -16,7 +16,8 @@ import {
   Input,
 } from '@nextui-org/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import useJoinRoom from '@/hooks/use-join-room';
+import { useRouter } from 'next/navigation';
+import paths from '@/paths';
 
 const CreateRoomModal = () => {
   const {
@@ -27,6 +28,7 @@ const CreateRoomModal = () => {
   } = useDisclosure();
 
   const { mutate, isPending } = useCreateRoom();
+  const router = useRouter();
 
   const {
     register,
@@ -35,7 +37,6 @@ const CreateRoomModal = () => {
   } = useForm<TRoomCreationPayload>({
     resolver: zodResolver(roomCreationSchema),
   });
-  const { mutate: joinRoom } = useJoinRoom();
 
   const handleCreateRoom: SubmitHandler<TRoomCreationPayload> = (payload) => {
     mutate(payload, {
@@ -45,7 +46,7 @@ const CreateRoomModal = () => {
         },
       }) => {
         onCreateRoomModalClose();
-        joinRoom({ roomCode });
+        router.push(paths.room(roomCode));
       },
       onError: () => {
         onCreateRoomModalClose();

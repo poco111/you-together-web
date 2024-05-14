@@ -15,14 +15,19 @@ import {
   TableCell,
 } from '@nextui-org/react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import paths from '@/paths';
+import useGetUserInfo from '@/hooks/use-user-info';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
   const { sendChat, isLoading, isError } = useSocket({ roomCode });
   const { data: chats = [] } = useChatMessage({ roomCode });
   const { data: participants = [] } = useGetParticipants({ roomCode });
+  const { data: userInfo } = useGetUserInfo({ roomCode });
   const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
+  const router = useRouter();
 
   if (isLoading)
     return (
@@ -31,7 +36,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         aria-label="Loading..."
       />
     );
-  // TODO: 에러처리
+
+  if (isError) {
+    router.push(paths.rooms());
+  }
+  // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
 
   const handleSendChat = (chat: string) => {
     if (!chat) return;
@@ -42,7 +51,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
   return (
     <div>
-      <ScrollShadow hideScrollBar className="w- h-96">
+      <ScrollShadow hideScrollBar className="w-96 h-96">
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
             <div key={chat.createdAt}>
@@ -74,7 +83,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         </TableHeader>
         <TableBody>
           {participantsList?.map((participant) => (
-            <TableRow key={participant.id}>
+            <TableRow key={participant.userId}>
               <TableCell>{participant.nickname}</TableCell>
               <TableCell>{participant.role}</TableCell>
             </TableRow>
