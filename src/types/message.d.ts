@@ -20,7 +20,7 @@ type TAlarmsMessage = TBaseMessage & {
 type TParticipantsInfoMessage = TBaseMessage & {
   messageType: 'PARTICIPANTS';
   participants: Array<{
-    id: number;
+    userId: number;
     nickname: string;
     role: 'VIEWER' | 'GUEST' | 'EDITOR' | 'MANAGER' | 'HOST';
   }>;
