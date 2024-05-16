@@ -46,7 +46,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const queryClient = useQueryClient();
   const clientRef = useRef<StompJs.Client | null>(null);
-  const hasJoinedRef = useRef<boolean>(false); // 추가: 중복 실행 방지
+  const hasJoinedRef = useRef<boolean>(false);
 
   useEffect(() => {
     dispatch({ type: 'LOADING' });
@@ -71,11 +71,24 @@ const useSocket = ({ roomCode }: useSocketProps) => {
             `/sub/messages/rooms/${roomCode}`,
             (message) => {
               const response = JSON.parse(message.body) as TWebSocketMessage;
+              console.log('웹 소켓 응답,', response);
               switch (response.messageType) {
                 case 'CHAT':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['chat', roomCode],
                     (old) => [...(old ?? []), response]
+                  );
+                  break;
+                case 'CHAT_HISTORIES':
+                  console.log(response.chatHistories);
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['chat', roomCode],
+                    () => [
+                      ...response.chatHistories.map((chat) => ({
+                        ...chat,
+                        roomCode,
+                      })),
+                    ]
                   );
                   break;
                 case 'ALARM':

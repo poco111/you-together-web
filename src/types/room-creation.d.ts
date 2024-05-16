@@ -1,7 +1,7 @@
 type TUserInfo = {
   userId: number;
   nickname: string;
-  role: string;
+  role: 'VIEWER' | 'GUEST' | 'EDITOR' | 'MANAGER' | 'HOST';
 };
 
 type TRoomCreationResponseData = {

@@ -49,16 +49,23 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     setChatValue('');
   };
 
+  const getNicknameFromUserId = (userId: number) => {
+    return participantsList?.find(
+      (participant) => participant.userId === userId
+    )?.nickname;
+  };
+
   return (
     <div>
       <ScrollShadow hideScrollBar className="w-96 h-96">
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
-            <div key={chat.createdAt}>
-              {`[${chat.nickname}]`} : {chat.content}
+            <div key={chat.chatId}>
+              {`[${getNicknameFromUserId(chat.userId)}]`} : {chat.content}{' '}
+              {chat.createdAt}
             </div>
           ) : (
-            <div key={chat.createdAt}>{chat.content}</div>
+            <div key={chat.chatId}>{chat.content}</div>
           );
         })}
       </ScrollShadow>
@@ -76,7 +83,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         채팅 보내기
       </button>
 
-      <Table isStriped aria-label="Participants table" className="w-64 h-64">
+      <Table isStriped aria-label="Participants table" className="w-80 h-64">
         <TableHeader className="sticky top-32">
           <TableColumn>NAME</TableColumn>
           <TableColumn>ROLE</TableColumn>

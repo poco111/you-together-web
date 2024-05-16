@@ -1,0 +1,1 @@
+type TChangeRoleResponse = ApiResponse<TUserInfo>;
