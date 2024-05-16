@@ -42,6 +42,8 @@ const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
   }
 };
 
+const MAX_CHAT_LENGTH = 100;
+
 const useSocket = ({ roomCode }: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const queryClient = useQueryClient();
@@ -76,7 +78,12 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                 case 'CHAT':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['chat', roomCode],
-                    (old) => [...(old ?? []), response]
+                    (old) => {
+                      const newChats = [...(old ?? []), response];
+                      return newChats.length > MAX_CHAT_LENGTH
+                        ? newChats.slice(1)
+                        : newChats;
+                    }
                   );
                   break;
                 case 'CHAT_HISTORIES':
@@ -93,7 +100,12 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                 case 'ALARM':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['chat', roomCode],
-                    (old) => [...(old ?? []), response]
+                    (old) => {
+                      const newChats = [...(old ?? []), response];
+                      return newChats.length > MAX_CHAT_LENGTH
+                        ? newChats.slice(1)
+                        : newChats;
+                    }
                   );
                   break;
                 case 'PARTICIPANTS':
