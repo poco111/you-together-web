@@ -24,7 +24,10 @@ import { useRouter } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-user-info';
 import useChangeRole from '@/hooks/use-change-role';
-import { getDropdownContents } from '@/service/user-action';
+import {
+  getDropdownContents,
+  getNicknameFromUserId,
+} from '@/service/user-action';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -55,12 +58,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
     sendChat(chat);
     setChatValue('');
-  };
-
-  const getNicknameFromUserId = (userId: number) => {
-    return participantsList?.find(
-      (participant) => participant.userId === userId
-    )?.nickname;
   };
 
   const renderDropdownContent = (
@@ -111,8 +108,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
             <div key={chat.chatId}>
-              {`[${getNicknameFromUserId(chat.userId) ?? '알수없음'}]`} :{' '}
-              {chat.content} {chat.createdAt}
+              {`[${
+                getNicknameFromUserId(chat.userId, participantsList) ??
+                '알수없음'
+              }]`}{' '}
+              : {chat.content} {chat.createdAt}
             </div>
           ) : (
             <div key={chat.chatId}>[알림] {chat.content}</div>

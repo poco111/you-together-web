@@ -40,3 +40,11 @@ export const getDropdownContents = (
 
   return { contentsType: 'CHANGE_ROLE', dropdownContents: dropdownContents };
 };
+
+export const getNicknameFromUserId = (
+  userId: number,
+  participantsList: TUserInfo[]
+) => {
+  return participantsList?.find((participant) => participant.userId === userId)
+    ?.nickname;
+};
