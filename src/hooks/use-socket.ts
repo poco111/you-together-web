@@ -42,11 +42,13 @@ const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
   }
 };
 
+const MAX_CHAT_LENGTH = 100;
+
 const useSocket = ({ roomCode }: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const queryClient = useQueryClient();
   const clientRef = useRef<StompJs.Client | null>(null);
-  const hasJoinedRef = useRef<boolean>(false); // 추가: 중복 실행 방지
+  const hasJoinedRef = useRef<boolean>(false);
 
   useEffect(() => {
     dispatch({ type: 'LOADING' });
@@ -71,23 +73,63 @@ const useSocket = ({ roomCode }: useSocketProps) => {
             `/sub/messages/rooms/${roomCode}`,
             (message) => {
               const response = JSON.parse(message.body) as TWebSocketMessage;
+              console.log('웹 소켓 응답,', response);
               switch (response.messageType) {
                 case 'CHAT':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['chat', roomCode],
-                    (old) => [...(old ?? []), response]
+                    (old) => {
+                      const newChats = [...(old ?? []), response];
+                      return newChats.length > MAX_CHAT_LENGTH
+                        ? newChats.slice(1)
+                        : newChats;
+                    }
+                  );
+                  break;
+                case 'CHAT_HISTORIES':
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['chat', roomCode],
+                    () => [
+                      ...response.chatHistories.map((chat) => ({
+                        ...chat,
+                        roomCode,
+                      })),
+                    ]
                   );
                   break;
                 case 'ALARM':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['chat', roomCode],
-                    (old) => [...(old ?? []), response]
+                    (old) => {
+                      const newChats = [...(old ?? []), response];
+                      return newChats.length > MAX_CHAT_LENGTH
+                        ? newChats.slice(1)
+                        : newChats;
+                    }
                   );
                   break;
                 case 'PARTICIPANTS':
                   queryClient.setQueryData<TWebSocketMessage[]>(
                     ['participants', roomCode],
-                    [response]
+                    () => {
+                      const userInfo = queryClient.getQueryData<TUserInfo>([
+                        'userInfo',
+                        roomCode,
+                      ]);
+                      response.participants.forEach((participant) => {
+                        if (
+                          participant.userId === userInfo?.userId &&
+                          participant.role !== userInfo?.role
+                        ) {
+                          const newUserInfo = participant;
+                          queryClient.setQueryData<TUserInfo>(
+                            ['userInfo', roomCode],
+                            newUserInfo
+                          );
+                        }
+                      });
+                      return [response];
+                    }
                   );
                   break;
                 case 'ROOM_TITLE':

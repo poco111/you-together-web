@@ -6,9 +6,20 @@ type TBaseMessage = {
 type TChatMessage = TBaseMessage & {
   messageType: 'CHAT';
   userId: number;
-  nickname: string;
+  chatId: number;
   content: string;
   createdAt: string;
+};
+
+type TChatHistoriesMessage = TBaseMessage & {
+  messageType: 'CHAT_HISTORIES';
+  chatHistories: Array<{
+    messageType: 'CHAT';
+    userId: number;
+    chatId: number;
+    content: 'string';
+    createdAt: 'string';
+  }>;
 };
 
 type TAlarmsMessage = TBaseMessage & {
@@ -19,11 +30,7 @@ type TAlarmsMessage = TBaseMessage & {
 
 type TParticipantsInfoMessage = TBaseMessage & {
   messageType: 'PARTICIPANTS';
-  participants: Array<{
-    userId: number;
-    nickname: string;
-    role: 'VIEWER' | 'GUEST' | 'EDITOR' | 'MANAGER' | 'HOST';
-  }>;
+  participants: Array<TUserInfo>;
 };
 
 type TRoomTitleMessage = TBaseMessage & {
@@ -35,4 +42,5 @@ type TWebSocketMessage =
   | TChatMessage
   | TParticipantsInfoMessage
   | TRoomTitleMessage
-  | TAlarmsMessage;
+  | TAlarmsMessage
+  | TChatHistoriesMessage;

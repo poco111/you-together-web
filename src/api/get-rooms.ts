@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+console.log('환경변수', process.env.NEXT_PUBLIC_BASE_URL);
+
 export const getRooms = async (page: number): Promise<TRoomsListData> => {
   try {
     const res = await axios.get(
