@@ -8,6 +8,13 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
+  theme: {
+    extend: {
+      colors: {
+        textDanger: 'hsl(339, 90%, 51%)',
+      },
+    },
+  },
   darkMode: 'class',
   plugins: [nextui()],
 };
