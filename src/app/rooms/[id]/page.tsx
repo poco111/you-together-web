@@ -182,12 +182,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         </TableBody>
       </Table>
 
-      <ChangeNicknameModal
-        isOpen={isChangeNicknameModalOpen}
-        onOpenChange={onChangeNicknameModalOpenChange}
-        onClose={onChangeNicknameModalClose}
-        roomCode={roomCode}
-      />
+      {!!isChangeNicknameModalOpen && (
+        <ChangeNicknameModal
+          isOpen={isChangeNicknameModalOpen}
+          onOpenChange={onChangeNicknameModalOpenChange}
+          onClose={onChangeNicknameModalClose}
+          roomCode={roomCode}
+        />
+      )}
     </div>
   );
 };
