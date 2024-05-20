@@ -1,5 +1,6 @@
 'use client';
 
+import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import useChatMessage from '@/hooks/use-chat';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-participants';
@@ -18,6 +19,7 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
 } from '@nextui-org/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,6 +41,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
   const router = useRouter();
+  const {
+    isOpen: isChangeNicknameModalOpen,
+    onOpen: onChangeNicknameModalOpen,
+    onOpenChange: onChangeNicknameModalOpenChange,
+    onClose: onChangeNicknameModalClose,
+  } = useDisclosure();
 
   if (isLoading)
     return (
@@ -73,7 +81,9 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       case 'NICK_NAME':
         return (
           <DropdownMenu aria-label="Action menu">
-            <DropdownItem>닉네임 변경</DropdownItem>
+            <DropdownItem onClick={onChangeNicknameModalOpen}>
+              닉네임 변경
+            </DropdownItem>
           </DropdownMenu>
         );
       case 'CHANGE_ROLE':
@@ -171,6 +181,13 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           })}
         </TableBody>
       </Table>
+
+      <ChangeNicknameModal
+        isOpen={isChangeNicknameModalOpen}
+        onOpenChange={onChangeNicknameModalOpenChange}
+        onClose={onChangeNicknameModalClose}
+        roomCode={roomCode}
+      />
     </div>
   );
 };
