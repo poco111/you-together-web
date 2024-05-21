@@ -1,5 +1,6 @@
 'use client';
 
+import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import useChatMessage from '@/hooks/use-chat';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-participants';
@@ -18,12 +19,17 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
 } from '@nextui-org/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-user-info';
 import useChangeRole from '@/hooks/use-change-role';
+import {
+  getDropdownContents,
+  getNicknameFromUserId,
+} from '@/service/user-action';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -35,6 +41,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
   const router = useRouter();
+  const {
+    isOpen: isChangeNicknameModalOpen,
+    onOpen: onChangeNicknameModalOpen,
+    onOpenChange: onChangeNicknameModalOpenChange,
+    onClose: onChangeNicknameModalClose,
+  } = useDisclosure();
 
   if (isLoading)
     return (
@@ -56,79 +68,48 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     setChatValue('');
   };
 
-  const getNicknameFromUserId = (userId: number) => {
-    return participantsList?.find(
-      (participant) => participant.userId === userId
-    )?.nickname;
-  };
-
-  const renderDropDownContent = (
-    userInfo: TUserInfo | undefined,
+  const renderDropdownContent = (
+    userInfo: TUserInfo,
     targetUserInfo: TUserInfo
   ) => {
-    const userRoles = ['HOST', 'MANAGER', 'EDITOR', 'GUEST', 'VIEWER'];
-    const userRatings = new Map();
-    userRoles.forEach((role, index) => {
-      userRatings.set(role, index);
-    });
-
-    if (userInfo?.userId === targetUserInfo.userId) {
-      return (
-        <DropdownMenu aria-label="Action menu">
-          <DropdownItem>닉네임 변경하기</DropdownItem>
-        </DropdownMenu>
-      );
-    }
-
-    if (
-      userInfo?.role === 'EDITOR' ||
-      userInfo?.role === 'GUEST' ||
-      userInfo?.role === 'VIEWER'
-    ) {
-      return (
-        <DropdownMenu aria-label="Action menu">
-          <DropdownItem>유저 역할 변경은 MANAGER부터 가능합니다</DropdownItem>
-        </DropdownMenu>
-      );
-    }
-
-    if (userInfo?.role === targetUserInfo?.role) {
-      return (
-        <DropdownMenu aria-label="Action menu">
-          <DropdownItem>현재 사용자와 동일한 역할입니다</DropdownItem>
-        </DropdownMenu>
-      );
-    }
-
-    const dropdownItems: string[] = [];
-    const userRating = userRatings.get(userInfo?.role);
-    const targetUserRating = userRatings.get(targetUserInfo?.role);
-    userRatings.forEach((rating, role) => {
-      if (userRating <= rating && rating < targetUserRating) {
-        dropdownItems.push(role);
-      }
-    });
-
-    return (
-      <DropdownMenu aria-label="Action menu">
-        {dropdownItems.map((role) => {
-          return (
-            <DropdownItem
-              key={role}
-              textValue="role"
-              onClick={() =>
-                changeUserRole({
-                  targetUserId: targetUserInfo?.userId,
-                  newUserRole: role,
-                })
-              }
-            >
-              {role}으로 역할 변경
-            </DropdownItem>
-          );
-        })}
-      </DropdownMenu>
+    const { contentsType, dropdownContents } = getDropdownContents(
+      userInfo,
+      targetUserInfo
     );
+
+    switch (contentsType) {
+      case 'NICK_NAME':
+        return (
+          <DropdownMenu aria-label="Action menu">
+            <DropdownItem onClick={onChangeNicknameModalOpen}>
+              닉네임 변경
+            </DropdownItem>
+          </DropdownMenu>
+        );
+      case 'CHANGE_ROLE':
+        return (
+          <DropdownMenu aria-label="Action menu">
+            {dropdownContents.map((role) => (
+              <DropdownItem
+                key={role}
+                textValue="role"
+                onClick={() =>
+                  changeUserRole({
+                    targetUserId: targetUserInfo.userId,
+                    newUserRole: role,
+                  })
+                }
+              >
+                {role}로 역할 변경
+              </DropdownItem>
+            ))}
+          </DropdownMenu>
+        );
+      case 'NONE':
+        return null;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -137,8 +118,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
             <div key={chat.chatId}>
-              {`[${getNicknameFromUserId(chat.userId)}]`} : {chat.content}{' '}
-              {chat.createdAt}
+              {`[${
+                getNicknameFromUserId(chat.userId, participantsList) ??
+                '알수없음'
+              }]`}{' '}
+              : {chat.content} {chat.createdAt}
             </div>
           ) : (
             <div key={chat.chatId}>[알림] {chat.content}</div>
@@ -166,25 +150,46 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           <TableColumn>Action</TableColumn>
         </TableHeader>
         <TableBody>
-          {participantsList?.map((participant) => (
-            <TableRow key={participant.userId}>
-              <TableCell>{participant.nickname}</TableCell>
-              <TableCell>{participant.role}</TableCell>
-              <TableCell>
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button isIconOnly size="sm" variant="light">
-                      아이콘
-                      {/* <VerticalDotsIcon className="text-default-300" /> */}
-                    </Button>
-                  </DropdownTrigger>
-                  {renderDropDownContent(userInfo, participant)}
-                </Dropdown>
-              </TableCell>
-            </TableRow>
-          ))}
+          {participantsList?.map((participant) => {
+            const isDisabled =
+              userInfo &&
+              getDropdownContents(userInfo, participant).contentsType ===
+                'NONE';
+            return (
+              <TableRow key={participant.userId}>
+                <TableCell>{participant.nickname}</TableCell>
+                <TableCell>{participant.role}</TableCell>
+                <TableCell>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        disabled={isDisabled}
+                      >
+                        아이콘
+                      </Button>
+                    </DropdownTrigger>
+                    {!isDisabled &&
+                      userInfo &&
+                      renderDropdownContent(userInfo, participant)}
+                  </Dropdown>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
+
+      {!!isChangeNicknameModalOpen && (
+        <ChangeNicknameModal
+          isOpen={isChangeNicknameModalOpen}
+          onOpenChange={onChangeNicknameModalOpenChange}
+          onClose={onChangeNicknameModalClose}
+          roomCode={roomCode}
+        />
+      )}
     </div>
   );
 };
