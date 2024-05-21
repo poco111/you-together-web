@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   Button,
   Modal,
@@ -36,6 +37,7 @@ const ChangeNicknameModal = ({
     handleSubmit,
     setError,
     watch,
+    clearErrors,
     formState: { errors: formErrors },
   } = useForm<TNicknameChangePayload>({
     resolver: zodResolver(nicknameChangeSchema(userInfo?.nickname || '')),
@@ -47,11 +49,27 @@ const ChangeNicknameModal = ({
 
   const {
     refetch: checkDuplicate,
+    isLoading,
     isError,
     isSuccess,
   } = useCheckDuplicateNickname({
     newNickname: newNickname,
   });
+
+  useEffect(() => {
+    if (formErrors.newNickname?.type === 'duplicate_string') {
+      clearErrors('newNickname');
+    }
+  }, [newNickname, formErrors, clearErrors, isSuccess]);
+
+  useEffect(() => {
+    if (isError) {
+      setError('newNickname', {
+        type: 'duplicate_string',
+        message: '이미 사용중인 닉네임입니다',
+      });
+    }
+  }, [isError, setError]);
 
   const handleNicknameChange: SubmitHandler<TNicknameChangePayload> = ({
     newNickname,
@@ -75,13 +93,6 @@ const ChangeNicknameModal = ({
 
   const handleCheckDuplicate = () => {
     checkDuplicate();
-
-    if (isError) {
-      setError('newNickname', {
-        type: 'duplicate_string',
-        message: '이미 사용중인 닉네임입니다',
-      });
-    }
   };
 
   return (
@@ -108,9 +119,11 @@ const ChangeNicknameModal = ({
                   <Button
                     type="button"
                     onPress={handleCheckDuplicate}
-                    disabled={!!formErrors.newNickname || !newNickname}
+                    disabled={
+                      !!formErrors.newNickname || !newNickname || isLoading
+                    }
                     className={`${
-                      !!formErrors.newNickname || !newNickname
+                      !!formErrors.newNickname || !newNickname || isLoading
                         ? 'opacity-50 cursor-not-allowed'
                         : ''
                     }`}
