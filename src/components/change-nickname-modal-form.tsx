@@ -46,8 +46,8 @@ const ChangeNicknameModal = ({
 
   const { mutate: changeNickname } = useChangeNickname();
   const newNickname = watch('newNickname');
-
   const {
+    data: checkDuplicateData,
     refetch: checkDuplicate,
     isLoading,
     isError,
@@ -59,17 +59,27 @@ const ChangeNicknameModal = ({
   useEffect(() => {
     if (formErrors.newNickname?.type === 'duplicate_string') {
       clearErrors('newNickname');
+      queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
+        ['nickname'],
+        () => null
+      );
     }
-  }, [newNickname, formErrors, clearErrors, isSuccess]);
+    if (checkDuplicateData?.data.nicknameIsUnique !== null) {
+      queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
+        ['nickname'],
+        () => null
+      );
+    }
+  }, [newNickname, formErrors, clearErrors, queryClient]);
 
   useEffect(() => {
-    if (isError) {
+    if (checkDuplicateData?.data.nicknameIsUnique === false) {
       setError('newNickname', {
         type: 'duplicate_string',
         message: '이미 사용중인 닉네임입니다',
       });
     }
-  }, [isError, setError]);
+  }, [checkDuplicateData, setError]);
 
   const handleNicknameChange: SubmitHandler<TNicknameChangePayload> = ({
     newNickname,
@@ -120,10 +130,16 @@ const ChangeNicknameModal = ({
                     type="button"
                     onPress={handleCheckDuplicate}
                     disabled={
-                      !!formErrors.newNickname || !newNickname || isLoading
+                      !!formErrors.newNickname ||
+                      !newNickname ||
+                      isLoading ||
+                      checkDuplicateData?.data.nicknameIsUnique === false
                     }
                     className={`${
-                      !!formErrors.newNickname || !newNickname || isLoading
+                      !!formErrors.newNickname ||
+                      !newNickname ||
+                      isLoading ||
+                      checkDuplicateData?.data.nicknameIsUnique === false
                         ? 'opacity-50 cursor-not-allowed'
                         : ''
                     }`}
@@ -134,6 +150,7 @@ const ChangeNicknameModal = ({
                 <div className="text-xs pl-1">
                   {isSuccess &&
                     !formErrors.newNickname &&
+                    checkDuplicateData?.data.nicknameIsUnique === true &&
                     `사용가능한 닉네임입니다.`}
                 </div>
                 <div className="text-xs text-textDanger pl-1 mt-1.5">
@@ -156,11 +173,23 @@ const ChangeNicknameModal = ({
                     variant="light"
                     type="submit"
                     className={`flex-grow ${
-                      !!formErrors.newNickname || !isSuccess || isError
+                      (isSuccess &&
+                        checkDuplicateData?.data.nicknameIsUnique !== true) ||
+                      isLoading ||
+                      !!formErrors.newNickname ||
+                      checkDuplicateData?.data.nicknameIsUnique === false ||
+                      isError
                         ? 'opacity-50 cursor-not-allowed'
                         : ''
                     }`}
-                    disabled={!!formErrors.newNickname || !isSuccess || isError}
+                    disabled={
+                      (isSuccess &&
+                        checkDuplicateData?.data.nicknameIsUnique !== true) ||
+                      isLoading ||
+                      !!formErrors.newNickname ||
+                      checkDuplicateData?.data.nicknameIsUnique === false ||
+                      isError
+                    }
                   >
                     변경
                   </Button>
