@@ -1,8 +1,7 @@
 type TChangeNicknameResponse = ApiResponse<TUserInfo>;
 
 type TCheckDuplicateNicknameData = {
-  type: string;
-  message: string;
-}[];
+  nicknameIsUnique: boolean;
+};
 
 type TCheckDuplicateNicknameResponse = ApiResponse<TCheckDuplicateNicknameData>;
