@@ -82,6 +82,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     setChatValue('');
   };
 
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing) return;
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendChat(chatValue);
+    }
+  };
+
   const renderDropdownContent = (
     userInfo: TUserInfo,
     targetUserInfo: TUserInfo
@@ -175,6 +183,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               placeholder="채팅을 입력하세요"
               value={chatValue}
               onChange={(e) => setChatValue(e.target.value)}
+              onKeyDown={handleChatKeyDown}
             />
             <button onClick={() => handleSendChat(chatValue)}>
               <Icon name="sendMessage" className="w-5 h-5" />
