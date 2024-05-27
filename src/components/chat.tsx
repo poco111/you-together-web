@@ -12,6 +12,18 @@ interface IChatProps {
   handleChatKeyDown: (e: React.KeyboardEvent) => void;
 }
 
+const formatChatTime = (time: string): string => {
+  const date = new Date(time);
+
+  const hours = date.getHours() % 12 ? date.getHours() % 12 : 12;
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? '오후' : '오전';
+
+  const formattedMinutes = minutes < 10 ? '0' + minutes : minutes.toString();
+
+  return `${ampm} ${hours}:${formattedMinutes}`;
+};
+
 const Chat = ({
   chats,
   chatValue,
@@ -29,20 +41,31 @@ const Chat = ({
               key={chat.chatId}
               className="inline-block gap-2 text-xs break-words w-full"
             >
-              <span className="text-gray-500 break-words">
-                {`${
-                  getNicknameFromUserId(chat.userId, participantsList) ??
-                  '알수없음'
-                }`}{' '}
-              </span>
-              <span className="break-words w-96">
-                {chat.content} {chat.createdAt}
-              </span>
+              <div className="flex">
+                <span className="text-gray-500 mr-2">
+                  {getNicknameFromUserId(chat.userId, participantsList) ??
+                    '알수없음'}
+                </span>
+                <span className="inline-block break-words flex-1">
+                  {chat.content}
+                </span>
+                <span className="ml-2 text-gray-400">
+                  {formatChatTime(chat.createdAt)}
+                </span>
+              </div>
             </div>
           ) : (
-            <div key={chat.chatId} className="text-xs text-amber-200">
-              [알림] {chat.content}
-            </div>
+            <>
+              <div className="flex text-xs text-amber-200">
+                <span className="text-xs text-amber-200 mr-2">[알림]</span>
+                <span className="inline-block break-words flex-1">
+                  {chat.content}
+                </span>
+                <span className="ml-2 text-gray-400">
+                  {formatChatTime(chat.createdAt)}
+                </span>
+              </div>
+            </>
           );
         })}
       </ScrollShadow>
