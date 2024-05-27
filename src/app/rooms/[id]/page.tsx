@@ -47,6 +47,7 @@ import {
 import Link from 'next/link';
 import Icon from '@/assets/icon';
 import useAddPlaylist from '@/hooks/use-add-playlist';
+import useDeletePlaylist from '@/hooks/use-delete-playlist';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -57,6 +58,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
+  const { mutate: deletePlaylist } = useDeletePlaylist();
   const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
@@ -117,6 +119,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     router.push(paths.rooms());
   }
   // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
+
+  const handlePlaylistDelete = (videoNumber: number) => {
+    deletePlaylist({
+      videoNumber: videoNumber,
+    });
+  };
 
   const handlePlaylistAdd: SubmitHandler<TYoutubeUrlPayload> = (payload) => {
     if (payload.youtubeUrl === '') return;
@@ -249,7 +257,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                       </div>
                       <div className="flex gap-2 pl-4">
                         <Icon name="play" className="invisible" />
-                        <Icon name="trashCan" />
+                        <button
+                          onClick={() => handlePlaylistDelete(item.videoNumber)}
+                        >
+                          <Icon name="trashCan" />
+                        </button>
                       </div>
                     </div>
                   </div>

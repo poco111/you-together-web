@@ -12,3 +12,5 @@ type TYoutubeUrlPayload = {
 };
 
 type TAddPlaylistResponse = ApiResponse<null>;
+
+type TDeletePlaylistResponse = ApiResponse<null>;
