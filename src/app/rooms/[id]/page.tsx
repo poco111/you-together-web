@@ -48,6 +48,7 @@ import Link from 'next/link';
 import Icon from '@/assets/icon';
 import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
+import Chat from '@/components/chat';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -270,48 +271,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             </Listbox>
           </div>
 
-          <div>
-            <ScrollShadow hideScrollBar className="w-full h-96 mb-3">
-              {chats.map((chat) => {
-                return chat.messageType === 'CHAT' ? (
-                  <div
-                    key={chat.chatId}
-                    className="inline-block gap-2 text-xs break-words w-full"
-                  >
-                    <span className="text-gray-500 break-words">
-                      {`${
-                        getNicknameFromUserId(chat.userId, participantsList) ??
-                        '알수없음'
-                      }`}{' '}
-                    </span>
-                    <span className="break-words w-96">
-                      {chat.content} {chat.createdAt}
-                    </span>
-                  </div>
-                ) : (
-                  <div key={chat.chatId} className="text-xs text-amber-200">
-                    [알림] {chat.content}
-                  </div>
-                );
-              })}
-            </ScrollShadow>
-
-            <div className="flex gap-3 h-24">
-              <Textarea
-                placeholder="채팅을 입력하세요"
-                value={chatValue}
-                onChange={(e) => setChatValue(e.target.value)}
-                onKeyDown={handleChatKeyDown}
-                className="overflow-auto w-full"
-              />
-              <button
-                className="pb-5"
-                onClick={() => handleSendChat(chatValue)}
-              >
-                <Icon name="sendMessage" className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+          <Chat
+            chats={chats}
+            chatValue={chatValue}
+            setChatValue={setChatValue}
+            participantsList={participantsList}
+            handleSendChat={handleSendChat}
+            handleChatKeyDown={handleChatKeyDown}
+          />
 
           <Table
             isStriped
