@@ -132,6 +132,12 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                     }
                   );
                   break;
+                case 'PLAYLIST':
+                  queryClient.setQueryData<TWebSocketMessage[]>(
+                    ['playlist', roomCode],
+                    [response]
+                  );
+                  break;
                 case 'ROOM_TITLE':
               }
             }

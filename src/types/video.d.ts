@@ -1,0 +1,14 @@
+type TVideoInfo = {
+  roomCode: string;
+  videoId: string;
+  videoTitle: string;
+  channelTitle: string;
+  thumbnail: string;
+  duration: string;
+};
+
+type TYoutubeUrlPayload = {
+  youtubeUrl: string;
+};
+
+type TAddPlaylistResponse = ApiResponse<null>;

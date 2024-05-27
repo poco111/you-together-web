@@ -5,8 +5,10 @@ import {
   FaRegCirclePlay,
   FaRegCirclePause,
   FaEllipsis,
+  FaRegTrashCan,
 } from 'react-icons/fa6';
 import { IoIosSend } from 'react-icons/io';
+import { GoPlusCircle } from 'react-icons/go';
 
 const iconTypes = {
   arrowUp: FaAngleUp,
@@ -16,6 +18,8 @@ const iconTypes = {
   pause: FaRegCirclePause,
   ellipsis: FaEllipsis,
   sendMessage: IoIosSend,
+  plus: GoPlusCircle,
+  trashCan: FaRegTrashCan,
 };
 
 type TIconName = {
