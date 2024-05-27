@@ -9,19 +9,7 @@ import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-participants';
 import {
   CircularProgress,
-  ScrollShadow,
-  Textarea,
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
   Button,
-  DropdownTrigger,
-  Dropdown,
-  DropdownMenu,
-  DropdownItem,
   Image,
   Listbox,
   ListboxItem,
@@ -40,15 +28,13 @@ import useGetUserInfo from '@/hooks/use-user-info';
 import useChangeRole from '@/hooks/use-change-role';
 import useGetVideoInfo from '@/hooks/use-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
-import {
-  getDropdownContents,
-  getNicknameFromUserId,
-} from '@/service/user-action';
+
 import Link from 'next/link';
 import Icon from '@/assets/icon';
 import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
+import ParticipantsList from '@/components/participants-list';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -148,50 +134,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     }
   };
 
-  const renderDropdownContent = (
-    userInfo: TUserInfo,
-    targetUserInfo: TUserInfo
-  ) => {
-    const { contentsType, dropdownContents } = getDropdownContents(
-      userInfo,
-      targetUserInfo
-    );
-
-    switch (contentsType) {
-      case 'NICK_NAME':
-        return (
-          <DropdownMenu aria-label="Action menu">
-            <DropdownItem onClick={onChangeNicknameModalOpen}>
-              닉네임 변경
-            </DropdownItem>
-          </DropdownMenu>
-        );
-      case 'CHANGE_ROLE':
-        return (
-          <DropdownMenu aria-label="Action menu">
-            {dropdownContents.map((role) => (
-              <DropdownItem
-                key={role}
-                textValue="role"
-                onClick={() =>
-                  changeUserRole({
-                    targetUserId: targetUserInfo.userId,
-                    newUserRole: role,
-                  })
-                }
-              >
-                {role}로 역할 변경
-              </DropdownItem>
-            ))}
-          </DropdownMenu>
-        );
-      case 'NONE':
-        return null;
-      default:
-        return null;
-    }
-  };
-
   return (
     <>
       <Navbar className="shadow-gray-800 shadow-lg m-0">
@@ -280,49 +222,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             handleChatKeyDown={handleChatKeyDown}
           />
 
-          <Table
-            isStriped
-            aria-label="Participants table"
-            className="min-x-auto min-h-auto max-h-64 overflow-auto"
-          >
-            <TableHeader className="sticky top-32">
-              <TableColumn>NAME</TableColumn>
-              <TableColumn>ROLE</TableColumn>
-              <TableColumn>Action</TableColumn>
-            </TableHeader>
-            <TableBody>
-              {participantsList?.map((participant) => {
-                const isDisabled =
-                  userInfo &&
-                  getDropdownContents(userInfo, participant).contentsType ===
-                    'NONE';
-                return (
-                  <TableRow key={participant.userId}>
-                    <TableCell>{participant.nickname}</TableCell>
-                    <TableCell>{participant.role}</TableCell>
-                    <TableCell>
-                      <Dropdown>
-                        <DropdownTrigger>
-                          <Button
-                            isIconOnly
-                            size="sm"
-                            variant="light"
-                            disabled={isDisabled}
-                            className="pl-1"
-                          >
-                            <Icon name="ellipsis" className="size-5" />
-                          </Button>
-                        </DropdownTrigger>
-                        {!isDisabled &&
-                          userInfo &&
-                          renderDropdownContent(userInfo, participant)}
-                      </Dropdown>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <ParticipantsList
+            participantsList={participantsList}
+            userInfo={userInfo}
+            onChangeNicknameModalOpen={onChangeNicknameModalOpen}
+            changeUserRole={changeUserRole}
+          />
 
           {!!isChangeNicknameModalOpen && (
             <ChangeNicknameModal
