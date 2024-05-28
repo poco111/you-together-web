@@ -163,8 +163,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           <div>비디오 인포</div>
         </div>
         <div className="flex flex-col w-80 gap-2">
-          <div className="w-full h-52 max-h-52 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
-            <form className="flex" onSubmit={handleSubmit(handlePlaylistAdd)}>
+          <div className="w-full min-h-14 max-h-52 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
+            <form
+              className="flex mb-2"
+              onSubmit={handleSubmit(handlePlaylistAdd)}
+            >
               <Input
                 defaultValue=""
                 placeholder="YouTube 영상의 url을 입력하세요"
@@ -176,40 +179,56 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               </Button>
             </form>
             <Listbox aria-label="Playlist">
-              {playlistInfo?.map((item) => (
+              {playlistInfo?.length === 0 ? (
                 <ListboxItem
-                  key={item.videoNumber}
-                  textValue="Video"
-                  className="flex"
+                  key="empty"
+                  textValue="Empty"
+                  className="flex cursor-default"
                 >
-                  <div className="flex gap-4 items-center">
-                    <Icon name="gripLines" />
-                    <Image
-                      className="size-6"
-                      alt="썸네일"
-                      src={item.thumbnail}
-                    />
-                    <div className="flex justify-between items-center gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-bold text-sm truncate w-40">
-                          {item.videoTitle}
-                        </span>
-                        <span className="text-tiny text-default-400 truncate">
-                          {item.channelTitle}
-                        </span>
-                      </div>
-                      <div className="flex gap-2 pl-4">
-                        <Icon name="play" className="invisible" />
-                        <button
-                          onClick={() => handlePlaylistDelete(item.videoNumber)}
-                        >
-                          <Icon name="trashCan" />
-                        </button>
-                      </div>
-                    </div>
+                  <div className="flex justify-center items-center w-full h-full">
+                    <span className="text-default-400">
+                      플레이리스트가 비었습니다
+                    </span>
                   </div>
                 </ListboxItem>
-              ))}
+              ) : (
+                playlistInfo?.map((item) => (
+                  <ListboxItem
+                    key={item.videoNumber}
+                    textValue="Video"
+                    className="flex"
+                  >
+                    <div className="flex gap-4 items-center">
+                      <Icon name="gripLines" />
+                      <Image
+                        className="size-6"
+                        alt="썸네일"
+                        src={item.thumbnail}
+                      />
+                      <div className="flex justify-between items-center gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-bold text-sm truncate w-40">
+                            {item.videoTitle}
+                          </span>
+                          <span className="text-tiny text-default-400 truncate">
+                            {item.channelTitle}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 pl-4">
+                          <Icon name="play" className="invisible" />
+                          <button
+                            onClick={() =>
+                              handlePlaylistDelete(item.videoNumber)
+                            }
+                          >
+                            <Icon name="trashCan" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </ListboxItem>
+                ))
+              )}
             </Listbox>
           </div>
 
