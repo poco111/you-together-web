@@ -14,7 +14,7 @@ import {
 
 import Link from 'next/link';
 import paths from '@/paths';
-import { useRooms } from '@/hooks/use-rooms';
+import { useGetRooms } from '@/hooks/use-get-rooms';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +25,7 @@ const RoomTable = () => {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = useRooms();
+  } = useGetRooms();
 
   const router = useRouter();
 
