@@ -1,7 +1,7 @@
 import { getRooms } from '@/api/get-rooms';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-export const useRooms = () => {
+export const useGetRooms = () => {
   const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useInfiniteQuery<TRoomsListData>({
       queryKey: ['rooms'],

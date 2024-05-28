@@ -4,9 +4,9 @@ interface useChatMessageProps {
   roomCode: string;
 }
 
-const useChatMessage = ({ roomCode }: useChatMessageProps) => {
+const useGetChatMessage = ({ roomCode }: useChatMessageProps) => {
   return useQuery<TChatMessage[]>({
     queryKey: ['chat', roomCode],
   });
 };
-export default useChatMessage;
+export default useGetChatMessage;

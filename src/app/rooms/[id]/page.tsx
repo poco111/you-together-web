@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import YouTube from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
-import useChatMessage from '@/hooks/use-chat';
+import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
-import useGetParticipants from '@/hooks/use-participants';
+import useGetParticipants from '@/hooks/use-get-participants';
 import {
   CircularProgress,
   Button,
@@ -15,8 +15,6 @@ import {
   ListboxItem,
   Navbar,
   NavbarBrand,
-  NavbarContent,
-  NavbarItem,
   useDisclosure,
   Input,
 } from '@nextui-org/react';
@@ -24,9 +22,9 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import paths from '@/paths';
-import useGetUserInfo from '@/hooks/use-user-info';
+import useGetUserInfo from '@/hooks/use-get-user-info';
 import useChangeRole from '@/hooks/use-change-role';
-import useGetVideoInfo from '@/hooks/use-video-info';
+import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
 import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
 
@@ -40,7 +38,7 @@ import ParticipantsList from '@/components/participants-list';
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
   const { sendChat, isLoading, isError } = useSocket({ roomCode });
-  const { data: chats = [] } = useChatMessage({ roomCode });
+  const { data: chats = [] } = useGetChatMessage({ roomCode });
   const { data: participants = [] } = useGetParticipants({ roomCode });
   const { data: userInfo } = useGetUserInfo({ roomCode });
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
