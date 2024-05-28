@@ -28,6 +28,7 @@ import useGetUserInfo from '@/hooks/use-user-info';
 import useChangeRole from '@/hooks/use-change-role';
 import useGetVideoInfo from '@/hooks/use-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
+import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
 
 import Link from 'next/link';
 import Icon from '@/assets/icon';
@@ -43,6 +44,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const { data: participants = [] } = useGetParticipants({ roomCode });
   const { data: userInfo } = useGetUserInfo({ roomCode });
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
+  const { data: roomDetailInfo } = useGetRoomDetailInfo({ roomCode });
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
   const { mutate: deletePlaylist } = useDeletePlaylist();
@@ -142,12 +144,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             <span className="text-red-500">T</span>ogether
           </Link>
         </NavbarBrand>
-        <NavbarContent justify="center" />
-        <NavbarContent className="flex" justify="end">
-          <NavbarItem>
-            <div>방정보</div>
-          </NavbarItem>
-        </NavbarContent>
       </Navbar>
 
       <div className="flex w-full h-auto justify-center items-center px-40 gap-4">
@@ -162,7 +158,44 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           <div>비디오 인포</div>
         </div>
         <div className="flex flex-col w-80 gap-2">
-          <div className="w-full min-h-14 max-h-52 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
+          <div className="w-full min-h-10 p-3 border-small rounded-small border-default-200 dark:border-default-100">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 w-2/3">
+                <div className="text-base font-semibold">
+                  {roomDetailInfo?.roomTitle}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-1/3 justify-end">
+                <Icon
+                  name="peopleGroup"
+                  className={`size-5 ${
+                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (roomDetailInfo?.capacity ?? 0)
+                      ? 'text-red-500'
+                      : ''
+                  }`}
+                />
+                <div
+                  className={`text-sm ${
+                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (roomDetailInfo?.capacity ?? 0)
+                      ? 'text-red-500'
+                      : ''
+                  }`}
+                >
+                  {roomDetailInfo?.currentParticipant}/
+                  {roomDetailInfo?.capacity}
+                </div>
+                {roomDetailInfo?.passwordExist ? (
+                  <Icon name="lock" className="text-red-500" />
+                ) : (
+                  <Icon name="lockOpen" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full min-h-14 max-h-44 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
             <form
               className="flex mb-2"
               onSubmit={handleSubmit(handlePlaylistAdd)}
@@ -206,7 +239,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                       />
                       <div className="flex justify-between items-center gap-2">
                         <div className="flex flex-col">
-                          <span className="text-bold text-sm truncate w-40">
+                          <span className="text-bold text-xs whitespace-normal w-40">
                             {item.videoTitle}
                           </span>
                           <span className="text-tiny text-default-400 truncate">

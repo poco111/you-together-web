@@ -56,6 +56,20 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     const joinRoomHandler = async () => {
       try {
         const response = await joinRoom({ roomCode });
+        queryClient.setQueryData<TRoomDetailInfo>(
+          ['roomDetailInfo', roomCode],
+          () => {
+            const { roomTitle, capacity, currentParticipant, passwordExist } =
+              response.data.data;
+            const roomDetailInfo = {
+              roomTitle,
+              capacity,
+              currentParticipant,
+              passwordExist,
+            };
+            return roomDetailInfo;
+          }
+        );
         queryClient.setQueryData<TUserInfo>(
           ['userInfo', roomCode],
           () => response.data.data.user

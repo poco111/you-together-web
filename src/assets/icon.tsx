@@ -6,6 +6,9 @@ import {
   FaRegCirclePause,
   FaEllipsis,
   FaRegTrashCan,
+  FaLock,
+  FaLockOpen,
+  FaPeopleGroup,
 } from 'react-icons/fa6';
 import { IoIosSend } from 'react-icons/io';
 import { GoPlusCircle } from 'react-icons/go';
@@ -20,6 +23,9 @@ const iconTypes = {
   sendMessage: IoIosSend,
   plus: GoPlusCircle,
   trashCan: FaRegTrashCan,
+  lock: FaLock,
+  lockOpen: FaLockOpen,
+  peopleGroup: FaPeopleGroup,
 };
 
 type TIconName = {
