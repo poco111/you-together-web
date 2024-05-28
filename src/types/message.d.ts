@@ -48,10 +48,20 @@ type TPlaylistMessage = TBaseMessage & {
   }>;
 };
 
+type TVideoSyncInfoMessage = TBaseMessage & {
+  messageType: 'VIDEO_SYNC_INFO';
+} & TVideoSyncInfo;
+
+type TStartVideoMessage = TBaseMessage & {
+  messageType: 'START_VIDEO';
+} & TVideoTitleInfo;
+
 type TWebSocketMessage =
   | TChatMessage
   | TParticipantsInfoMessage
   | TRoomTitleMessage
   | TAlarmsMessage
   | TChatHistoriesMessage
-  | TPlaylistMessage;
+  | TPlaylistMessage
+  | TVideoSyncInfoMessage
+  | TStartVideoMessage;
