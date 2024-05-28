@@ -32,6 +32,7 @@ const Chat = ({
   handleSendChat,
   handleChatKeyDown,
 }: IChatProps) => {
+  console.log(chats);
   return (
     <div>
       <ScrollShadow hideScrollBar className="w-full h-96 mb-3">
@@ -55,17 +56,15 @@ const Chat = ({
               </div>
             </div>
           ) : (
-            <>
-              <div className="flex text-xs text-amber-200">
-                <span className="text-xs text-amber-200 mr-2">[알림]</span>
-                <span className="inline-block break-words flex-1">
-                  {chat.content}
-                </span>
-                <span className="ml-2 text-gray-400">
-                  {formatChatTime(chat.createdAt)}
-                </span>
-              </div>
-            </>
+            <div key={chat.chatId} className="flex text-xs text-amber-200">
+              <span className="text-xs text-amber-200 mr-2">[알림]</span>
+              <span className="inline-block break-words flex-1">
+                {chat.content}
+              </span>
+              <span className="ml-2 text-gray-400">
+                {formatChatTime(chat.createdAt)}
+              </span>
+            </div>
           );
         })}
       </ScrollShadow>
