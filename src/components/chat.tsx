@@ -32,7 +32,6 @@ const Chat = ({
   handleSendChat,
   handleChatKeyDown,
 }: IChatProps) => {
-  console.log(chats);
   return (
     <div>
       <ScrollShadow hideScrollBar className="w-full h-96 mb-3">
