@@ -48,3 +48,13 @@ export const getNicknameFromUserId = (
   return participantsList?.find((participant) => participant.userId === userId)
     ?.nickname;
 };
+
+export const extractYouTubeVideoId = (url: string) => {
+  // Regular expression to match YouTube URLs
+  const regex =
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const matches = url.match(regex);
+
+  // Return the first match if it exists, otherwise null
+  return matches ? matches[1] : null;
+};

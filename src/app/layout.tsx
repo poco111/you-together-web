@@ -20,7 +20,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ReactQueryProviders>
           <NextUIProviders>
-            <div className="flex flex-col gap-24">{children}</div>
+            <div className="flex flex-col gap-12">{children}</div>
           </NextUIProviders>
         </ReactQueryProviders>
       </body>

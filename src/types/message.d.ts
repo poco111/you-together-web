@@ -38,9 +38,20 @@ type TRoomTitleMessage = TBaseMessage & {
   updatedTitle: string;
 };
 
+type TPlaylistMessage = TBaseMessage & {
+  messageType: 'PLAYLIST';
+  playlist: Array<{
+    videoNumber: number;
+    videoTitle: string;
+    thumbnail: string;
+    channelTitle: string;
+  }>;
+};
+
 type TWebSocketMessage =
   | TChatMessage
   | TParticipantsInfoMessage
   | TRoomTitleMessage
   | TAlarmsMessage
-  | TChatHistoriesMessage;
+  | TChatHistoriesMessage
+  | TPlaylistMessage;
