@@ -1,5 +1,4 @@
 type TVideoInfo = {
-  roomCode: string;
   videoId: string;
   videoTitle: string;
   channelTitle: string;

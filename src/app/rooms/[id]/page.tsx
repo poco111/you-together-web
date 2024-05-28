@@ -78,7 +78,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     if (isSuccessOfGetVideoInfo && videoInfo) {
       addPlaylist(
         {
-          roomCode: roomCode,
           videoId: videoInfo.videoId,
           videoTitle: videoInfo.videoTitle,
           channelTitle: videoInfo.channelTitle,
