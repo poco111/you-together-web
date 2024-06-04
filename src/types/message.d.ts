@@ -53,7 +53,7 @@ type TVideoSyncInfoMessage = TBaseMessage & {
 } & TVideoSyncInfo;
 
 type TStartVideoMessage = TBaseMessage & {
-  messageType: 'START_VIDEO';
+  messageType: 'START_VIDEO_INFO';
 } & TVideoTitleInfo;
 
 type TWebSocketMessage =
