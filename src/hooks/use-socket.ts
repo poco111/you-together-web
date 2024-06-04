@@ -56,11 +56,19 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     const joinRoomHandler = async () => {
       try {
         const response = await joinRoom({ roomCode });
+        const {
+          roomTitle,
+          capacity,
+          currentParticipant,
+          passwordExist,
+          user,
+          currentChannelTitle,
+          currentVideoId,
+          currentVideoTitle,
+        } = response.data.data;
         queryClient.setQueryData<TRoomDetailInfo>(
           ['roomDetailInfo', roomCode],
           () => {
-            const { roomTitle, capacity, currentParticipant, passwordExist } =
-              response.data.data;
             const roomDetailInfo = {
               roomTitle,
               capacity,
@@ -70,15 +78,37 @@ const useSocket = ({ roomCode }: useSocketProps) => {
             return roomDetailInfo;
           }
         );
-        queryClient.setQueryData<TUserInfo>(
-          ['userInfo', roomCode],
-          () => response.data.data.user
+        queryClient.setQueryData<TUserInfo>(['userInfo', roomCode], () => user);
+
+        queryClient.setQueryData<TVideoTitleInfo>(
+          ['videoTitleInfo', roomCode],
+          () => {
+            const videoTitleInfo = {
+              videoTitle: currentVideoTitle,
+              channelTitle: currentChannelTitle,
+            };
+            return videoTitleInfo;
+          }
         );
+
+        queryClient.setQueryData<TVideoSyncInfo>(
+          ['videoSyncInfo', roomCode],
+          () => {
+            const videoSyncInfo = {
+              videoId: currentVideoId,
+              playerState: 'PAUSED',
+              playerCurrentTime: 0,
+              playerRate: 1,
+            };
+            return videoSyncInfo;
+          }
+        );
+
         const socket = new SockJs(`${process.env.NEXT_PUBLIC_BASE_URL}/stomp`);
         const stompClient = new Client({
           webSocketFactory: () => socket,
           reconnectDelay: 5000,
-          debug: (str) => console.log(new Date(), str),
+          // debug: (str) => console.log(new Date(), str),
         });
 
         stompClient.onConnect = () => {
@@ -152,6 +182,32 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                     [response]
                   );
                   break;
+                case 'VIDEO_SYNC_INFO':
+                  queryClient.setQueryData<TVideoSyncInfo>(
+                    ['videoSyncInfo', roomCode],
+                    () => {
+                      const videoSyncInfo = {
+                        videoId: response.videoId,
+                        playerState: response.playerState,
+                        playerCurrentTime: response.playerCurrentTime,
+                        playerRate: response.playerRate,
+                      };
+                      return videoSyncInfo;
+                    }
+                  );
+                  break;
+                case 'START_VIDEO_INFO':
+                  queryClient.setQueryData<TVideoTitleInfo>(
+                    ['videoTitleInfo', roomCode],
+                    () => {
+                      const videoTitleInfo = {
+                        videoTitle: response.videoTitle,
+                        channelTitle: response.channelTitle,
+                      };
+                      return videoTitleInfo;
+                    }
+                  );
+                  break;
                 case 'ROOM_TITLE':
               }
             }
@@ -189,10 +245,36 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     });
   };
 
+  const sendVideoPlayerState = ({
+    roomCode,
+    playerState,
+    playerCurrentTime,
+    playerRate,
+  }: {
+    roomCode: string;
+    playerState: string;
+    playerCurrentTime: number;
+    playerRate: number;
+  }) => {
+    if (!clientRef.current) return;
+
+    console.log('설마');
+
+    clientRef.current.publish({
+      destination: `/pub/messages/video`,
+      body: JSON.stringify({
+        roomCode,
+        playerState,
+        playerCurrentTime,
+        playerRate,
+      }),
+    });
+  };
+
   const isLoading = state.loading;
   const isError = state.error;
 
-  return { sendChat, isLoading, isError };
+  return { sendChat, sendVideoPlayerState, isLoading, isError };
 };
 
 export default useSocket;

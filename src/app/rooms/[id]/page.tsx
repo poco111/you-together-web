@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import YouTube from 'react-youtube';
+import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
@@ -19,7 +18,7 @@ import {
   Input,
 } from '@nextui-org/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-get-user-info';
@@ -27,6 +26,8 @@ import useChangeRole from '@/hooks/use-change-role';
 import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
 import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
+import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
+import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
 
 import Link from 'next/link';
 import Icon from '@/assets/icon';
@@ -34,21 +35,30 @@ import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
+import ChangeUnmuteModal from '@/components/change-unmute-modal';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
-  const { sendChat, isLoading, isError } = useSocket({ roomCode });
+  const { sendChat, sendVideoPlayerState, isLoading, isError } = useSocket({
+    roomCode,
+  });
   const { data: chats = [] } = useGetChatMessage({ roomCode });
   const { data: participants = [] } = useGetParticipants({ roomCode });
   const { data: userInfo } = useGetUserInfo({ roomCode });
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
   const { data: roomDetailInfo } = useGetRoomDetailInfo({ roomCode });
+  const { data: videoTitleInfo } = useGetVideoTitleInfo({ roomCode });
+  const { data: videoSyncInfo } = useGetVideoSyncInfo({ roomCode });
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
   const { mutate: deletePlaylist } = useDeletePlaylist();
   const [chatValue, setChatValue] = useState('');
+  const [curVideoId, setCurVideoId] = useState<string | null>(null);
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const isFirstPlayerReadyRef = useRef<boolean>(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -67,11 +77,19 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   });
 
   const router = useRouter();
+
   const {
     isOpen: isChangeNicknameModalOpen,
     onOpen: onChangeNicknameModalOpen,
     onOpenChange: onChangeNicknameModalOpenChange,
     onClose: onChangeNicknameModalClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isUnmuteModalOpen,
+    onOpen: onUnmuteModalOpen,
+    onOpenChange: onUnmuteModalOpenChange,
+    onClose: onUnmuteModalClose,
   } = useDisclosure();
 
   useEffect(() => {
@@ -92,6 +110,107 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       );
     }
   }, [roomCode, isSuccessOfGetVideoInfo, videoInfo, addPlaylist, queryClient]);
+
+  useEffect(() => {
+    // 기존에 curVideoId가 없고 새로운 VideoId가 있으면, 새로운 VideoId를 curVideoId로 설정한다.
+    if (!curVideoId && videoSyncInfo?.videoId) {
+      setCurVideoId(videoSyncInfo?.videoId);
+    }
+
+    // curVideoId가 있지만, 새로운 VideoId가 다르면, curVideoId를 변경한다.
+    if (videoSyncInfo?.videoId && curVideoId !== videoSyncInfo?.videoId) {
+      setCurVideoId(videoSyncInfo?.videoId);
+    }
+  }, [videoSyncInfo?.videoId, curVideoId]);
+
+  const handleReadyState = (event: YouTubeEvent) => {
+    playerRef.current = event.target;
+
+    setIsPlayerReady(true);
+  };
+
+  useEffect(() => {
+    console.log(isFirstPlayerReadyRef.current);
+    console.log(playerRef.current);
+    if (
+      isPlayerReady &&
+      playerRef.current &&
+      curVideoId &&
+      videoSyncInfo?.playerState !== null
+    ) {
+      if (
+        videoSyncInfo?.playerState === 'PLAY' &&
+        isFirstPlayerReadyRef.current === false
+      ) {
+        onUnmuteModalOpen();
+        playerRef.current.mute();
+        playerRef.current.playVideo();
+      } else if (
+        videoSyncInfo?.playerState === 'PLAY' &&
+        isFirstPlayerReadyRef.current === true
+      ) {
+        playerRef.current.playVideo();
+      } else if (videoSyncInfo?.playerState === 'PAUSE') {
+        playerRef.current.pauseVideo();
+      } else if (videoSyncInfo?.playerState === 'END') {
+        setIsPlayerReady(false);
+      }
+    }
+  }, [
+    curVideoId,
+    videoSyncInfo?.playerState,
+    isPlayerReady,
+    onUnmuteModalOpen,
+  ]);
+
+  useEffect(() => {
+    if (isPlayerReady) {
+      const playerCurrentTime = playerRef.current?.getCurrentTime();
+      if (
+        videoSyncInfo?.playerCurrentTime &&
+        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
+      ) {
+        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+      }
+    }
+  }, [videoSyncInfo?.playerCurrentTime, isPlayerReady]);
+
+  const handleUnMute = () => {
+    if (playerRef.current) {
+      playerRef.current.unMute();
+      isFirstPlayerReadyRef.current = true;
+      onUnmuteModalClose();
+    }
+  };
+
+  const handlePlayerStateChange = (event: YouTubeEvent) => {
+    const newPlayerState = event.data;
+    const playerState: { [key: number]: string } = {
+      1: 'PLAY',
+      2: 'PAUSE',
+      0: 'END',
+    };
+
+    // video 상태를 변경시킨 사용자가 아닌, 상태 변화를 전달받은 사용자는
+    // 다시 상태를 변경하지 않도록 하기 위한 조건문
+    if (playerState[newPlayerState] === videoSyncInfo?.playerState) return;
+
+    if (playerState[newPlayerState] === 'PLAY') {
+      sendVideoPlayerState({
+        roomCode: roomCode,
+        playerState: 'PLAY',
+        playerCurrentTime: event.target.getCurrentTime(),
+        playerRate: event.target.getPlaybackRate(),
+      });
+    } else if (playerState[newPlayerState] === 'PAUSE') {
+      sendVideoPlayerState({
+        roomCode: roomCode,
+        playerState: 'PAUSE',
+        playerCurrentTime: event.target.getCurrentTime(),
+        playerRate: event.target.getPlaybackRate(),
+      });
+    }
+  };
 
   if (isLoading)
     return (
@@ -144,15 +263,22 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         </NavbarBrand>
       </Navbar>
 
-      <div className="flex w-full h-auto justify-center items-center px-40 gap-4">
-        <div className="flex flex-col justify-between gap-2">
-          <YouTube
-            videoId="cyrrGfZbXFA"
-            opts={{
-              width: 800,
-              height: 450,
-            }}
-          />
+      <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
+        <div className="flex flex-col gap-2">
+          {!curVideoId && (
+            <div className="w-videoWidth h-videoHeight">재생목록이 비었음</div>
+          )}
+          {curVideoId && (
+            <YouTube
+              videoId={curVideoId}
+              opts={{
+                width: 680,
+                height: 480,
+              }}
+              onReady={handleReadyState}
+              onStateChange={handlePlayerStateChange}
+            />
+          )}
           <div>비디오 인포</div>
         </div>
         <div className="flex flex-col w-80 gap-2">
@@ -284,6 +410,15 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               onOpenChange={onChangeNicknameModalOpenChange}
               onClose={onChangeNicknameModalClose}
               roomCode={roomCode}
+            />
+          )}
+
+          {!!isUnmuteModalOpen && (
+            <ChangeUnmuteModal
+              isOpen={isUnmuteModalOpen}
+              onOpenChange={onUnmuteModalOpenChange}
+              onClose={onUnmuteModalClose}
+              handleUnmute={handleUnMute}
             />
           )}
         </div>
