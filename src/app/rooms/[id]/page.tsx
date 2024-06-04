@@ -153,6 +153,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       } else if (videoSyncInfo?.playerState === 'PAUSE') {
         playerRef.current.pauseVideo();
       } else if (videoSyncInfo?.playerState === 'END') {
+        setCurVideoId(null);
         setIsPlayerReady(false);
       }
     }
@@ -279,7 +280,13 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               onStateChange={handlePlayerStateChange}
             />
           )}
-          <div>비디오 인포</div>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-red-500">현재 재생중인 영상</p>
+            <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
+            <p className="text-xs text-neutral-400">
+              {videoTitleInfo?.channelTitle}
+            </p>
+          </div>
         </div>
         <div className="flex flex-col w-80 gap-2">
           <div className="w-full min-h-10 p-3 border-small rounded-small border-default-200 dark:border-default-100">
