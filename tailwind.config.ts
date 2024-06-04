@@ -10,6 +10,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      width: {
+        videoWidth: '680px',
+        videoHeight: '480px',
+      },
       colors: {
         textDanger: 'hsl(339, 90%, 51%)',
       },
