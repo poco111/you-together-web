@@ -12,6 +12,8 @@ type TAddPlaylistResponse = ApiResponse<null>;
 
 type TDeletePlaylistResponse = ApiResponse<null>;
 
+type TPlayNextVideoResponse = ApiResponse<null>;
+
 type TVideoTitleInfo = {
   videoTitle: string;
   channelTitle: string;

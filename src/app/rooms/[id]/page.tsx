@@ -28,6 +28,7 @@ import useGetPlaylist from '@/hooks/use-get-playlist';
 import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
 import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
 import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
+import usePlayNextVideo from '@/hooks/use-play-next-video';
 
 import Link from 'next/link';
 import Icon from '@/assets/icon';
@@ -52,6 +53,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
   const { mutate: deletePlaylist } = useDeletePlaylist();
+  const { mutate: playNextVideo } = usePlayNextVideo();
   const [chatValue, setChatValue] = useState('');
   const [curVideoId, setCurVideoId] = useState<string | null>(null);
   const participantsList = participants?.[0]?.participants;
@@ -85,13 +87,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     onClose: onChangeNicknameModalClose,
   } = useDisclosure();
 
-  const {
-    isOpen: isUnmuteModalOpen,
-    onOpen: onUnmuteModalOpen,
-    onOpenChange: onUnmuteModalOpenChange,
-    onClose: onUnmuteModalClose,
-  } = useDisclosure();
-
   useEffect(() => {
     if (isSuccessOfGetVideoInfo && videoInfo) {
       addPlaylist(
@@ -112,26 +107,21 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   }, [roomCode, isSuccessOfGetVideoInfo, videoInfo, addPlaylist, queryClient]);
 
   useEffect(() => {
-    // 기존에 curVideoId가 없고 새로운 VideoId가 있으면, 새로운 VideoId를 curVideoId로 설정한다.
-    if (!curVideoId && videoSyncInfo?.videoId) {
+    if (
+      (!curVideoId && videoSyncInfo?.videoId) ||
+      (videoSyncInfo?.videoId && curVideoId !== videoSyncInfo?.videoId)
+    ) {
       setCurVideoId(videoSyncInfo?.videoId);
-    }
-
-    // curVideoId가 있지만, 새로운 VideoId가 다르면, curVideoId를 변경한다.
-    if (videoSyncInfo?.videoId && curVideoId !== videoSyncInfo?.videoId) {
-      setCurVideoId(videoSyncInfo?.videoId);
+      setIsPlayerReady(false);
     }
   }, [videoSyncInfo?.videoId, curVideoId]);
 
   const handleReadyState = (event: YouTubeEvent) => {
     playerRef.current = event.target;
-
     setIsPlayerReady(true);
   };
 
   useEffect(() => {
-    console.log(isFirstPlayerReadyRef.current);
-    console.log(playerRef.current);
     if (
       isPlayerReady &&
       playerRef.current &&
@@ -142,9 +132,9 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         videoSyncInfo?.playerState === 'PLAY' &&
         isFirstPlayerReadyRef.current === false
       ) {
-        onUnmuteModalOpen();
         playerRef.current.mute();
         playerRef.current.playVideo();
+        isFirstPlayerReadyRef.current = true;
       } else if (
         videoSyncInfo?.playerState === 'PLAY' &&
         isFirstPlayerReadyRef.current === true
@@ -157,12 +147,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         setIsPlayerReady(false);
       }
     }
-  }, [
-    curVideoId,
-    videoSyncInfo?.playerState,
-    isPlayerReady,
-    onUnmuteModalOpen,
-  ]);
+  }, [curVideoId, videoSyncInfo?.playerState, isPlayerReady]);
 
   useEffect(() => {
     if (isPlayerReady) {
@@ -176,12 +161,8 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     }
   }, [videoSyncInfo?.playerCurrentTime, isPlayerReady]);
 
-  const handleUnMute = () => {
-    if (playerRef.current) {
-      playerRef.current.unMute();
-      isFirstPlayerReadyRef.current = true;
-      onUnmuteModalClose();
-    }
+  const handleNextVideoButton = () => {
+    playNextVideo({ videoNumber: playlistInfo[0].videoNumber });
   };
 
   const handlePlayerStateChange = (event: YouTubeEvent) => {
@@ -280,12 +261,29 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               onStateChange={handlePlayerStateChange}
             />
           )}
-          <div className="flex flex-col gap-1">
-            <p className="text-sm text-red-500">현재 재생중인 영상</p>
-            <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
-            <p className="text-xs text-neutral-400">
-              {videoTitleInfo?.channelTitle}
-            </p>
+          <div className="flex gap-2 items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-red-500">현재 재생중인 영상</p>
+              <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
+              <p className="text-xs text-neutral-400">
+                {videoTitleInfo?.channelTitle}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="light"
+              disabled={playlistInfo?.length === 0}
+              onClick={() => handleNextVideoButton()}
+            >
+              <Icon
+                name="playNextVideo"
+                className={`size-5 ${
+                  playlistInfo?.length === 0
+                    ? 'text-neutral-700'
+                    : 'text-red-500'
+                }`}
+              />
+            </Button>
           </div>
         </div>
         <div className="flex flex-col w-80 gap-2">
@@ -417,15 +415,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               onOpenChange={onChangeNicknameModalOpenChange}
               onClose={onChangeNicknameModalClose}
               roomCode={roomCode}
-            />
-          )}
-
-          {!!isUnmuteModalOpen && (
-            <ChangeUnmuteModal
-              isOpen={isUnmuteModalOpen}
-              onOpenChange={onUnmuteModalOpenChange}
-              onClose={onUnmuteModalClose}
-              handleUnmute={handleUnMute}
             />
           )}
         </div>
