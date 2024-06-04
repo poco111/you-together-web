@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa6';
 import { IoIosSend } from 'react-icons/io';
 import { GoPlusCircle } from 'react-icons/go';
+import { TbPlayerTrackNextFilled } from 'react-icons/tb';
 
 const iconTypes = {
   arrowUp: FaAngleUp,
@@ -26,6 +27,7 @@ const iconTypes = {
   lock: FaLock,
   lockOpen: FaLockOpen,
   peopleGroup: FaPeopleGroup,
+  playNextVideo: TbPlayerTrackNextFilled,
 };
 
 type TIconName = {
