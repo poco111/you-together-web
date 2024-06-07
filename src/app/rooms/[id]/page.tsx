@@ -36,8 +36,7 @@ import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
-import ChangeUnmuteModal from '@/components/change-unmute-modal';
-import { set } from 'zod';
+import { hasVideoEditPermission } from '@/service/user-permissions';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -278,12 +277,16 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             <Button
               size="sm"
               variant="light"
-              disabled={playlistInfo?.length === 0}
+              disabled={
+                (userInfo && !hasVideoEditPermission(userInfo)) ||
+                playlistInfo?.length === 0
+              }
               onClick={() => handleNextVideoButton()}
             >
               <Icon
                 name="playNextVideo"
                 className={`size-5 ${
+                  (userInfo && !hasVideoEditPermission(userInfo)) ||
                   playlistInfo?.length === 0
                     ? 'text-neutral-700'
                     : 'text-red-500'
