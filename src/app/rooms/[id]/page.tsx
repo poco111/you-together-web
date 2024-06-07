@@ -37,6 +37,7 @@ import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
 import ChangeUnmuteModal from '@/components/change-unmute-modal';
+import { set } from 'zod';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
@@ -60,8 +61,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const playlistInfo = playlist?.[0]?.playlist;
   const playerRef = useRef<YouTubePlayer | null>(null);
   const isFirstPlayerReadyRef = useRef<boolean>(false);
+  const [previousPlayerState, setPreviousPlayerState] = useState<string | null>(
+    null
+  );
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
+  // 현재 플레이어 상태를 하나 둘까?
   const queryClient = useQueryClient();
 
   const { register, handleSubmit, watch, reset } = useForm<TYoutubeUrlPayload>({
@@ -113,44 +118,39 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     ) {
       setCurVideoId(videoSyncInfo?.videoId);
       setIsPlayerReady(false);
+      playerRef.current = null;
+      setPreviousPlayerState(null);
     }
-  }, [videoSyncInfo?.videoId, curVideoId]);
 
-  const handleReadyState = (event: YouTubeEvent) => {
-    playerRef.current = event.target;
-    setIsPlayerReady(true);
-  };
+    if (isPlayerReady && playerRef.current && curVideoId) {
+      if (videoSyncInfo?.playerState !== previousPlayerState) {
+        setPreviousPlayerState(videoSyncInfo?.playerState ?? null);
 
-  useEffect(() => {
-    if (
-      isPlayerReady &&
-      playerRef.current &&
-      curVideoId &&
-      videoSyncInfo?.playerState !== null
-    ) {
-      if (
-        videoSyncInfo?.playerState === 'PLAY' &&
-        isFirstPlayerReadyRef.current === false
-      ) {
-        playerRef.current.mute();
-        playerRef.current.playVideo();
-        isFirstPlayerReadyRef.current = true;
-      } else if (
-        videoSyncInfo?.playerState === 'PLAY' &&
-        isFirstPlayerReadyRef.current === true
-      ) {
-        playerRef.current.playVideo();
-      } else if (videoSyncInfo?.playerState === 'PAUSE') {
-        playerRef.current.pauseVideo();
-      } else if (videoSyncInfo?.playerState === 'END') {
-        setCurVideoId(null);
-        setIsPlayerReady(false);
+        if (
+          videoSyncInfo?.playerState === 'PLAY' &&
+          !isFirstPlayerReadyRef.current
+        ) {
+          playerRef.current.mute();
+          playerRef.current.playVideo();
+          isFirstPlayerReadyRef.current = true;
+          setPreviousPlayerState('PLAY');
+        } else if (
+          videoSyncInfo?.playerState === 'PLAY' &&
+          isFirstPlayerReadyRef.current
+        ) {
+          playerRef.current.playVideo();
+          setPreviousPlayerState('PLAY');
+        } else if (videoSyncInfo?.playerState === 'PAUSE') {
+          playerRef.current.pauseVideo();
+          setPreviousPlayerState('PAUSE');
+        } else if (videoSyncInfo?.playerState === 'END') {
+          setCurVideoId(null);
+          setIsPlayerReady(false);
+          playerRef.current = null;
+          setPreviousPlayerState(null);
+        }
       }
-    }
-  }, [curVideoId, videoSyncInfo?.playerState, isPlayerReady]);
 
-  useEffect(() => {
-    if (isPlayerReady) {
       const playerCurrentTime = playerRef.current?.getCurrentTime();
       if (
         videoSyncInfo?.playerCurrentTime &&
@@ -159,7 +159,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
       }
     }
-  }, [videoSyncInfo?.playerCurrentTime, isPlayerReady]);
+  }, [videoSyncInfo, curVideoId, isPlayerReady, previousPlayerState]);
+
+  const handleReadyState = (event: YouTubeEvent) => {
+    playerRef.current = event.target;
+    setIsPlayerReady(true);
+  };
 
   const handleNextVideoButton = () => {
     playNextVideo({ videoNumber: playlistInfo[0].videoNumber });
@@ -252,6 +257,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           )}
           {curVideoId && (
             <YouTube
+              key={curVideoId}
               videoId={curVideoId}
               opts={{
                 width: 680,
