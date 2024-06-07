@@ -192,6 +192,25 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     // 다시 상태를 변경하지 않도록 하기 위한 조건문
     if (playerState[newPlayerState] === videoSyncInfo?.playerState) return;
 
+    // 권한 없는 사용자인 경우 alert 띄우기
+    if (
+      !userHasVideoEditPermission &&
+      playerState[newPlayerState] === 'PLAY' &&
+      playerState[newPlayerState] !== videoSyncInfo?.playerState
+    ) {
+      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+      playerRef.current?.pauseVideo();
+      return;
+    } else if (
+      !userHasVideoEditPermission &&
+      playerState[newPlayerState] === 'PAUSE' &&
+      playerState[newPlayerState] !== videoSyncInfo?.playerState
+    ) {
+      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+      playerRef.current?.playVideo();
+      return;
+    }
+
     if (playerState[newPlayerState] === 'PLAY') {
       sendVideoPlayerState({
         roomCode: roomCode,
