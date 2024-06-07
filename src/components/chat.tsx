@@ -35,7 +35,7 @@ const Chat = ({
   handleSendChat,
   handleChatKeyDown,
 }: IChatProps) => {
-  const hasPermission = userInfo && hasChatPermission(userInfo);
+  const userHasChatPermission = userInfo && hasChatPermission(userInfo);
 
   return (
     <div>
@@ -76,18 +76,18 @@ const Chat = ({
       <div className="flex gap-3 h-24">
         <Textarea
           placeholder={`${
-            hasPermission ? '채팅을 입력하세요' : '채팅 권한이 없습니다'
+            userHasChatPermission ? '채팅을 입력하세요' : '채팅 권한이 없습니다'
           }`}
           value={chatValue}
           onChange={(e) => setChatValue(e.target.value)}
           onKeyDown={handleChatKeyDown}
           className="overflow-auto w-full"
-          disabled={!hasPermission}
+          disabled={!userHasChatPermission}
         />
         <button
           className="pb-5"
           onClick={() => handleSendChat(chatValue)}
-          disabled={!hasPermission}
+          disabled={!userHasChatPermission}
         >
           <Icon name="sendMessage" className="w-5 h-5" />
         </button>
