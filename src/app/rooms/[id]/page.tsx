@@ -291,6 +291,10 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               opts={{
                 width: 680,
                 height: 480,
+                playerVars: {
+                  disablekb: 1,
+                  rel: 0,
+                },
               }}
               onReady={handleReadyState}
               onStateChange={handlePlayerStateChange}
