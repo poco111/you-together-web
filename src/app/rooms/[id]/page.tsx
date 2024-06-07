@@ -65,7 +65,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   );
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
-  // 현재 플레이어 상태를 하나 둘까?
   const queryClient = useQueryClient();
 
   const { register, handleSubmit, watch, reset } = useForm<TYoutubeUrlPayload>({
@@ -114,8 +113,18 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
   useEffect(() => {
     if (
+      videoSyncInfo?.playerState === 'END' &&
+      !isPlayerReady &&
+      curVideoId === videoSyncInfo?.videoId
+    ) {
+      return;
+    }
+
+    if (
       (!curVideoId && videoSyncInfo?.videoId) ||
-      (videoSyncInfo?.videoId && curVideoId !== videoSyncInfo?.videoId)
+      (videoSyncInfo?.videoId &&
+        curVideoId &&
+        curVideoId !== videoSyncInfo?.videoId)
     ) {
       setCurVideoId(videoSyncInfo?.videoId);
       setIsPlayerReady(false);
@@ -145,7 +154,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           playerRef.current.pauseVideo();
           setPreviousPlayerState('PAUSE');
         } else if (videoSyncInfo?.playerState === 'END') {
-          setCurVideoId(null);
           setIsPlayerReady(false);
           playerRef.current = null;
           setPreviousPlayerState(null);
@@ -153,6 +161,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       }
 
       const playerCurrentTime = playerRef.current?.getCurrentTime();
+
       if (
         videoSyncInfo?.playerCurrentTime &&
         Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
