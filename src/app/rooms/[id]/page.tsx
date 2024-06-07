@@ -384,7 +384,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                         className={`${
                           userHasVideoEditPermission
                             ? 'cursor-pointer'
-                            : 'cursor-default'
+                            : 'invisible'
                         }`}
                       />
                       <Image
@@ -411,9 +411,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                             <Icon
                               name="trashCan"
                               className={`${
-                                userHasVideoEditPermission
-                                  ? 'text-white'
-                                  : 'text-gray-800'
+                                !userHasVideoEditPermission ? 'invisible' : null
                               }`}
                             />
                           </button>
