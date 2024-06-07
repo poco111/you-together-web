@@ -406,6 +406,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             chats={chats}
             chatValue={chatValue}
             setChatValue={setChatValue}
+            userInfo={userInfo}
             participantsList={participantsList}
             handleSendChat={handleSendChat}
             handleChatKeyDown={handleChatKeyDown}
