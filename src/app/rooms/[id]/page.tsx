@@ -73,6 +73,8 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   });
 
   const youtubeUrl = watch('youtubeUrl');
+  const userHasVideoEditPermission =
+    userInfo && hasVideoEditPermission(userInfo);
 
   const {
     data: videoInfo,
@@ -278,16 +280,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               size="sm"
               variant="light"
               disabled={
-                (userInfo && !hasVideoEditPermission(userInfo)) ||
-                playlistInfo?.length === 0
+                !userHasVideoEditPermission || playlistInfo?.length === 0
               }
               onClick={() => handleNextVideoButton()}
             >
               <Icon
                 name="playNextVideo"
                 className={`size-5 ${
-                  (userInfo && !hasVideoEditPermission(userInfo)) ||
-                  playlistInfo?.length === 0
+                  !userHasVideoEditPermission || playlistInfo?.length === 0
                     ? 'text-neutral-700'
                     : 'text-red-500'
                 }`}
@@ -340,11 +340,21 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             >
               <Input
                 defaultValue=""
-                placeholder="YouTube 영상의 url을 입력하세요"
+                placeholder={`${
+                  userHasVideoEditPermission
+                    ? 'YouTube 영상의 URL을 입력하세요'
+                    : '영상 추가에 관한 권한이 없습니다'
+                }`}
                 className="h-7 text-xs"
+                disabled={!userHasVideoEditPermission}
                 {...register('youtubeUrl')}
               />
-              <Button size="sm" variant="light" type="submit">
+              <Button
+                size="sm"
+                variant="light"
+                type="submit"
+                disabled={!userHasVideoEditPermission}
+              >
                 <Icon name="plus" />
               </Button>
             </form>
@@ -366,10 +376,17 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                   <ListboxItem
                     key={item.videoNumber}
                     textValue="Video"
-                    className="flex"
+                    className="flex cursor-default"
                   >
                     <div className="flex gap-4 items-center">
-                      <Icon name="gripLines" />
+                      <Icon
+                        name="gripLines"
+                        className={`${
+                          userHasVideoEditPermission
+                            ? 'cursor-pointer'
+                            : 'cursor-default'
+                        }`}
+                      />
                       <Image
                         className="size-6"
                         alt="썸네일"
@@ -384,14 +401,21 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                             {item.channelTitle}
                           </span>
                         </div>
-                        <div className="flex gap-2 pl-4">
-                          <Icon name="play" className="invisible" />
+                        <div className="flex gap-2 pl-6">
                           <button
+                            disabled={!userHasVideoEditPermission}
                             onClick={() =>
                               handlePlaylistDelete(item.videoNumber)
                             }
                           >
-                            <Icon name="trashCan" />
+                            <Icon
+                              name="trashCan"
+                              className={`${
+                                userHasVideoEditPermission
+                                  ? 'text-white'
+                                  : 'text-gray-800'
+                              }`}
+                            />
                           </button>
                         </div>
                       </div>
