@@ -65,6 +65,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
           currentChannelTitle,
           currentVideoId,
           currentVideoTitle,
+          currentVideoTime,
         } = response.data.data;
         queryClient.setQueryData<TRoomDetailInfo>(
           ['roomDetailInfo', roomCode],
@@ -96,8 +97,8 @@ const useSocket = ({ roomCode }: useSocketProps) => {
           () => {
             const videoSyncInfo = {
               videoId: currentVideoId,
-              playerState: 'PAUSED',
-              playerCurrentTime: 0,
+              playerState: 'PAUSE',
+              playerCurrentTime: currentVideoTime,
               playerRate: 1,
             };
             return videoSyncInfo;
@@ -257,8 +258,6 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     playerRate: number;
   }) => {
     if (!clientRef.current) return;
-
-    console.log('설마');
 
     clientRef.current.publish({
       destination: `/pub/messages/video`,
