@@ -168,6 +168,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       ) {
         playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
       }
+
+      const playerCurrentRate = playerRef.current?.getPlaybackRate();
+
+      if (videoSyncInfo?.playerRate !== playerCurrentRate) {
+        playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      }
     }
   }, [videoSyncInfo, curVideoId, isPlayerReady, previousPlayerState]);
 
@@ -179,7 +185,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const handleNextVideoButton = () => {
     playNextVideo({ videoNumber: playlistInfo[0].videoNumber });
   };
-
+  // 음소거 설정 상태 저장하기
   const handlePlayerStateChange = (event: YouTubeEvent) => {
     const newPlayerState = event.data;
     const playerState: { [key: number]: string } = {
@@ -226,6 +232,25 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         playerRate: event.target.getPlaybackRate(),
       });
     }
+  };
+
+  const handlePlayerRateChange = (event: YouTubeEvent) => {
+    const newPlayerRate = event.target.getPlaybackRate();
+
+    if (newPlayerRate === videoSyncInfo?.playerRate) return;
+
+    // 권한 없는 사용자인 경우 alert 띄우기
+    if (!userHasVideoEditPermission) {
+      playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      return;
+    }
+
+    sendVideoPlayerState({
+      roomCode: roomCode,
+      playerState: videoSyncInfo?.playerState as string,
+      playerCurrentTime: event.target.getCurrentTime(),
+      playerRate: newPlayerRate,
+    });
   };
 
   if (isLoading)
@@ -298,6 +323,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               }}
               onReady={handleReadyState}
               onStateChange={handlePlayerStateChange}
+              onPlaybackRateChange={handlePlayerRateChange}
             />
           )}
           <div className="flex gap-2 items-center justify-between">
