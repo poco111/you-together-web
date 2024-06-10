@@ -61,6 +61,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const playerRef = useRef<YouTubePlayer | null>(null);
   const isFirstVideoPlayRef = useRef<boolean>(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
 
@@ -132,11 +133,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         videoSyncInfo?.playerState === 'PLAY' &&
         isFirstVideoPlayRef.current
       ) {
+        if (isMuted) playerRef.current.mute();
         playerRef.current.playVideo();
       } else if (videoSyncInfo?.playerState === 'PAUSE') {
         playerRef.current.pauseVideo();
       } else if (videoSyncInfo?.playerState === 'END') {
+        playerRef.current.stopVideo();
         setIsPlayerReady(false);
+        setIsMuted(playerRef.current.isMuted());
         playerRef.current = null;
 
         queryClient.setQueryData<TVideoSyncInfo>(['videoSyncInfo', roomCode], {
@@ -169,7 +173,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     if (videoSyncInfo?.playerRate !== playerCurrentRate) {
       playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
     }
-  }, [videoSyncInfo, isPlayerReady, roomCode, queryClient]);
+  }, [videoSyncInfo, isPlayerReady, isMuted, roomCode, queryClient]);
 
   const handleReadyState = (event: YouTubeEvent) => {
     playerRef.current = event.target;
