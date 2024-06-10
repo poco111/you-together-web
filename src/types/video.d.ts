@@ -15,12 +15,12 @@ type TDeletePlaylistResponse = ApiResponse<null>;
 type TPlayNextVideoResponse = ApiResponse<null>;
 
 type TVideoTitleInfo = {
-  videoTitle: string;
-  channelTitle: string;
+  videoTitle: string | null;
+  channelTitle: string | null;
 };
 
 type TVideoSyncInfo = {
-  videoId: string;
+  videoId: string | null;
   playerState: string;
   playerCurrentTime: number;
   playerRate: number;

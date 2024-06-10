@@ -55,14 +55,11 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const { mutate: deletePlaylist } = useDeletePlaylist();
   const { mutate: playNextVideo } = usePlayNextVideo();
   const [chatValue, setChatValue] = useState('');
-  const [curVideoId, setCurVideoId] = useState<string | null>(null);
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
+
   const playerRef = useRef<YouTubePlayer | null>(null);
-  const isFirstPlayerReadyRef = useRef<boolean>(false);
-  const [previousPlayerState, setPreviousPlayerState] = useState<string | null>(
-    null
-  );
+  const isFirstVideoPlayRef = useRef<boolean>(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const queryClient = useQueryClient();
@@ -112,70 +109,67 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   }, [roomCode, isSuccessOfGetVideoInfo, videoInfo, addPlaylist, queryClient]);
 
   useEffect(() => {
-    if (
-      videoSyncInfo?.playerState === 'END' &&
-      !isPlayerReady &&
-      curVideoId === videoSyncInfo?.videoId
-    ) {
-      return;
-    }
+    const curPlayerState = playerRef.current?.getPlayerState();
+    const playerState: { [key: number]: string } = {
+      1: 'PLAY',
+      2: 'PAUSE',
+      0: 'END',
+    };
 
     if (
-      (!curVideoId && videoSyncInfo?.videoId) ||
-      (videoSyncInfo?.videoId &&
-        curVideoId &&
-        curVideoId !== videoSyncInfo?.videoId)
+      isPlayerReady &&
+      playerRef.current &&
+      videoSyncInfo?.playerState !== playerState[curPlayerState]
     ) {
-      setCurVideoId(videoSyncInfo?.videoId);
-      setIsPlayerReady(false);
-      playerRef.current = null;
-      setPreviousPlayerState(null);
-    }
-
-    if (isPlayerReady && playerRef.current && curVideoId) {
-      if (videoSyncInfo?.playerState !== previousPlayerState) {
-        setPreviousPlayerState(videoSyncInfo?.playerState ?? null);
-
-        if (
-          videoSyncInfo?.playerState === 'PLAY' &&
-          !isFirstPlayerReadyRef.current
-        ) {
-          playerRef.current.mute();
-          playerRef.current.playVideo();
-          isFirstPlayerReadyRef.current = true;
-          setPreviousPlayerState('PLAY');
-        } else if (
-          videoSyncInfo?.playerState === 'PLAY' &&
-          isFirstPlayerReadyRef.current
-        ) {
-          playerRef.current.playVideo();
-          setPreviousPlayerState('PLAY');
-        } else if (videoSyncInfo?.playerState === 'PAUSE') {
-          playerRef.current.pauseVideo();
-          setPreviousPlayerState('PAUSE');
-        } else if (videoSyncInfo?.playerState === 'END') {
-          setIsPlayerReady(false);
-          playerRef.current = null;
-          setPreviousPlayerState(null);
-        }
-      }
-
-      const playerCurrentTime = playerRef.current?.getCurrentTime();
-
       if (
-        videoSyncInfo?.playerCurrentTime &&
-        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
+        videoSyncInfo?.playerState === 'PLAY' &&
+        !isFirstVideoPlayRef.current
       ) {
-        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
-      }
+        playerRef.current.mute();
+        playerRef.current.playVideo();
+        isFirstVideoPlayRef.current = true;
+      } else if (
+        videoSyncInfo?.playerState === 'PLAY' &&
+        isFirstVideoPlayRef.current
+      ) {
+        playerRef.current.playVideo();
+      } else if (videoSyncInfo?.playerState === 'PAUSE') {
+        playerRef.current.pauseVideo();
+      } else if (videoSyncInfo?.playerState === 'END') {
+        setIsPlayerReady(false);
+        playerRef.current = null;
 
-      const playerCurrentRate = playerRef.current?.getPlaybackRate();
+        queryClient.setQueryData<TVideoSyncInfo>(['videoSyncInfo', roomCode], {
+          videoId: null,
+          playerState: 'END',
+          playerCurrentTime: 0,
+          playerRate: 1,
+        });
 
-      if (videoSyncInfo?.playerRate !== playerCurrentRate) {
-        playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+        queryClient.setQueryData<TVideoTitleInfo>(
+          ['videoTitleInfo', roomCode],
+          {
+            videoTitle: null,
+            channelTitle: null,
+          }
+        );
       }
     }
-  }, [videoSyncInfo, curVideoId, isPlayerReady, previousPlayerState]);
+    const playerCurrentTime = playerRef.current?.getCurrentTime();
+
+    if (
+      videoSyncInfo?.playerCurrentTime &&
+      Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
+    ) {
+      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+    }
+
+    const playerCurrentRate = playerRef.current?.getPlaybackRate();
+
+    if (videoSyncInfo?.playerRate !== playerCurrentRate) {
+      playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+    }
+  }, [videoSyncInfo, isPlayerReady, roomCode, queryClient]);
 
   const handleReadyState = (event: YouTubeEvent) => {
     playerRef.current = event.target;
@@ -193,7 +187,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       2: 'PAUSE',
       0: 'END',
     };
-
     // video 상태를 변경시킨 사용자가 아닌, 상태 변화를 전달받은 사용자는
     // 다시 상태를 변경하지 않도록 하기 위한 조건문
     if (playerState[newPlayerState] === videoSyncInfo?.playerState) return;
@@ -247,7 +240,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
     sendVideoPlayerState({
       roomCode: roomCode,
-      playerState: videoSyncInfo?.playerState as string,
+      playerState: 'RATE',
       playerCurrentTime: event.target.getCurrentTime(),
       playerRate: newPlayerRate,
     });
@@ -306,13 +299,18 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
       <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
         <div className="flex flex-col gap-2">
-          {!curVideoId && (
-            <div className="w-videoWidth h-videoHeight">재생목록이 비었음</div>
+          {!videoSyncInfo?.videoId && (
+            <div className="flex items-center justify-center w-videoWidth h-videoHeight bg-emptyPlaylist">
+              <div className="flex flex-col items-center">
+                <p className="text-default-400">재생목록이 비었습니다</p>
+                <p className="text-default-300">{`There are no videos in the room's playlist`}</p>
+              </div>
+            </div>
           )}
-          {curVideoId && (
+          {videoSyncInfo?.videoId && (
             <YouTube
-              key={curVideoId}
-              videoId={curVideoId}
+              key={videoSyncInfo?.videoId}
+              videoId={videoSyncInfo?.videoId}
               opts={{
                 width: 680,
                 height: 480,
@@ -327,13 +325,22 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             />
           )}
           <div className="flex gap-2 items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-red-500">현재 재생중인 영상</p>
-              <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
-              <p className="text-xs text-neutral-400">
-                {videoTitleInfo?.channelTitle}
-              </p>
-            </div>
+            {videoTitleInfo?.videoTitle && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-red-500">현재 재생중인 영상</p>
+                <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
+                <p className="text-xs text-neutral-400">
+                  {videoTitleInfo?.channelTitle}
+                </p>
+              </div>
+            )}
+            {!videoTitleInfo?.videoTitle && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-red-500">
+                  현재 재생중인 영상이 없습니다
+                </p>
+              </div>
+            )}
             <Button
               size="sm"
               variant="light"
@@ -425,7 +432,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 >
                   <div className="flex justify-center items-center w-full h-full">
                     <span className="text-default-400">
-                      플레이리스트가 비었습니다
+                      재생목록이 비었습니다
                     </span>
                   </div>
                 </ListboxItem>
