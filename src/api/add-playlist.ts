@@ -8,8 +8,8 @@ export const addPlaylist = async ({
   duration,
 }: {
   videoId: string;
-  videoTitle: string;
-  channelTitle: string;
+  videoTitle: string | null;
+  channelTitle: string | null;
   thumbnail: string;
   duration: string;
 }): Promise<AxiosResponse<TAddPlaylistResponse>> => {
