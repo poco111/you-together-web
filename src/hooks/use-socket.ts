@@ -66,6 +66,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
           currentVideoId,
           currentVideoTitle,
           currentVideoTime,
+          currentVideoNumber,
         } = response.data.data;
         queryClient.setQueryData<TRoomDetailInfo>(
           ['roomDetailInfo', roomCode],
@@ -100,6 +101,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
               playerState: 'PAUSE',
               playerCurrentTime: currentVideoTime,
               playerRate: 1,
+              videoNumber: currentVideoNumber,
             };
             return videoSyncInfo;
           }
@@ -192,6 +194,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                         playerState: response.playerState,
                         playerCurrentTime: response.playerCurrentTime,
                         playerRate: response.playerRate,
+                        videoNumber: response.videoNumber,
                       };
                       return videoSyncInfo;
                     }

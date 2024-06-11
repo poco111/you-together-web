@@ -24,4 +24,5 @@ type TVideoSyncInfo = {
   playerState: string;
   playerCurrentTime: number;
   playerRate: number;
+  videoNumber: number | null;
 };

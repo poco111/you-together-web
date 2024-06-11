@@ -4,6 +4,7 @@ type TJoinRoomResponseData = {
   currentVideoId: string;
   currentVideoTitle: string;
   currentVideoTime: number;
+  currentVideoNumber: number;
   user: TUserInfo;
 } & TRoomDetailInfo;
 

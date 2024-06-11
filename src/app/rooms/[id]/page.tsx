@@ -148,6 +148,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           playerState: 'END',
           playerCurrentTime: 0,
           playerRate: 1,
+          videoNumber: null,
         });
 
         queryClient.setQueryData<TVideoTitleInfo>(
@@ -313,7 +314,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           )}
           {videoSyncInfo?.videoId && (
             <YouTube
-              key={videoSyncInfo?.videoId}
+              key={videoSyncInfo?.videoNumber}
               videoId={videoSyncInfo?.videoId}
               opts={{
                 width: 680,
@@ -412,7 +413,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 placeholder={`${
                   userHasVideoEditPermission
                     ? 'YouTube 영상의 URL을 입력하세요'
-                    : '영상 추가에 관한 권한이 없습니다'
+                    : '영상을 추가할 수 있는 권한이 없습니다'
                 }`}
                 className="h-7 text-xs"
                 disabled={!userHasVideoEditPermission}
@@ -431,7 +432,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               {playlistInfo?.length === 0 ? (
                 <ListboxItem
                   key="empty"
-                  textValue="Empty"
+                  textValue="empty"
                   className="flex cursor-default"
                 >
                   <div className="flex justify-center items-center w-full h-full">
