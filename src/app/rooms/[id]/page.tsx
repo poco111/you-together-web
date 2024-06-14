@@ -118,6 +118,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       0: 'END',
     };
 
+    console.log(isPlayerReady);
     if (
       isPlayerReady &&
       playerRef.current &&
@@ -170,7 +171,9 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
       ) {
         playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
-        playerRef.current?.pauseVideo();
+        if (videoSyncInfo.playerState === 'PAUSE') {
+          playerRef.current?.pauseVideo();
+        }
       }
 
       const playerCurrentRate = playerRef.current?.getPlaybackRate();
