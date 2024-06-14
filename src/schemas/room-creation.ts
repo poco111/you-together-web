@@ -26,4 +26,14 @@ export const roomCreationSchema = z.object({
   password: z.string().max(20, '비밀번호는 최대 20자 입니다.').optional(),
 });
 
+export const roomTitleChangeSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, '방 제목을 입력해주세요')
+    .max(20, '방 제목은 최대 20자 입니다.'),
+});
+
 export type TRoomCreationPayload = z.infer<typeof roomCreationSchema>;
+
+export type TRoomTitleChangePayload = z.infer<typeof roomTitleChangeSchema>;

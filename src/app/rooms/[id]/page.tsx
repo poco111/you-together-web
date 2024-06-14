@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
+import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
 import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-get-participants';
@@ -377,11 +378,14 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           <div className="w-full min-h-10 p-3 border-small rounded-small border-default-200 dark:border-default-100">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2 w-2/3">
-                <div className="text-base font-semibold">
+                <div className="text-sm font-semibold">
                   {roomDetailInfo?.roomTitle}
                 </div>
               </div>
-              <div className="flex items-center gap-2 w-1/3 justify-end">
+              <div className="flex items-center gap-2 w-1/3 justify-end pl-1">
+                <ChangeRoomTitleModal
+                  currentRoomTitle={roomDetailInfo?.roomTitle}
+                />
                 <Icon
                   name="peopleGroup"
                   className={`size-5 ${

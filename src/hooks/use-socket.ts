@@ -213,6 +213,18 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                   );
                   break;
                 case 'ROOM_TITLE':
+                  queryClient.setQueryData<TRoomDetailInfo>(
+                    ['roomDetailInfo', roomCode],
+                    (old) => {
+                      if (old) {
+                        const roomDetailInfo = {
+                          ...old,
+                          roomTitle: response.updatedTitle,
+                        };
+                        return roomDetailInfo;
+                      }
+                    }
+                  );
               }
             }
           );
