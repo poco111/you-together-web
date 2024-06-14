@@ -160,19 +160,26 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
         );
       }
     }
-    const playerCurrentTime = playerRef.current?.getCurrentTime();
 
-    if (
-      videoSyncInfo?.playerCurrentTime &&
-      Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
-    ) {
-      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
-    }
+    if (isPlayerReady && playerRef.current) {
+      const playerCurrentTime = playerRef.current?.getCurrentTime();
 
-    const playerCurrentRate = playerRef.current?.getPlaybackRate();
+      if (
+        videoSyncInfo?.playerCurrentTime &&
+        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
+      ) {
+        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+        playerRef.current?.pauseVideo();
+      }
 
-    if (videoSyncInfo?.playerRate !== playerCurrentRate) {
-      playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      const playerCurrentRate = playerRef.current?.getPlaybackRate();
+
+      if (
+        videoSyncInfo?.playerRate &&
+        videoSyncInfo?.playerRate !== playerCurrentRate
+      ) {
+        playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      }
     }
   }, [videoSyncInfo, isPlayerReady, isMuted, roomCode, queryClient]);
 
@@ -320,6 +327,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 width: 680,
                 height: 480,
                 playerVars: {
+                  autoplay: 0,
                   disablekb: 1,
                   rel: 0,
                 },
