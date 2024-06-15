@@ -56,15 +56,62 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     const joinRoomHandler = async () => {
       try {
         const response = await joinRoom({ roomCode });
-        queryClient.setQueryData<TUserInfo>(
-          ['userInfo', roomCode],
-          () => response.data.data.user
+        const {
+          roomTitle,
+          capacity,
+          currentParticipant,
+          passwordExist,
+          user,
+          currentChannelTitle,
+          currentVideoId,
+          currentVideoTitle,
+          currentVideoTime,
+          currentVideoNumber,
+        } = response.data.data;
+        queryClient.setQueryData<TRoomDetailInfo>(
+          ['roomDetailInfo', roomCode],
+          () => {
+            const roomDetailInfo = {
+              roomTitle,
+              capacity,
+              currentParticipant,
+              passwordExist,
+            };
+            return roomDetailInfo;
+          }
         );
+        queryClient.setQueryData<TUserInfo>(['userInfo', roomCode], () => user);
+
+        queryClient.setQueryData<TVideoTitleInfo>(
+          ['videoTitleInfo', roomCode],
+          () => {
+            const videoTitleInfo = {
+              videoTitle: currentVideoTitle,
+              channelTitle: currentChannelTitle,
+            };
+            return videoTitleInfo;
+          }
+        );
+
+        queryClient.setQueryData<TVideoSyncInfo>(
+          ['videoSyncInfo', roomCode],
+          () => {
+            const videoSyncInfo = {
+              videoId: currentVideoId,
+              playerState: 'PAUSE',
+              playerCurrentTime: currentVideoTime,
+              playerRate: 1,
+              videoNumber: currentVideoNumber,
+            };
+            return videoSyncInfo;
+          }
+        );
+
         const socket = new SockJs(`${process.env.NEXT_PUBLIC_BASE_URL}/stomp`);
         const stompClient = new Client({
           webSocketFactory: () => socket,
           reconnectDelay: 5000,
-          debug: (str) => console.log(new Date(), str),
+          // debug: (str) => console.log(new Date(), str),
         });
 
         stompClient.onConnect = () => {
@@ -138,7 +185,46 @@ const useSocket = ({ roomCode }: useSocketProps) => {
                     [response]
                   );
                   break;
+                case 'VIDEO_SYNC_INFO':
+                  queryClient.setQueryData<TVideoSyncInfo>(
+                    ['videoSyncInfo', roomCode],
+                    () => {
+                      const videoSyncInfo = {
+                        videoId: response.videoId,
+                        playerState: response.playerState,
+                        playerCurrentTime: response.playerCurrentTime,
+                        playerRate: response.playerRate,
+                        videoNumber: response.videoNumber,
+                      };
+                      return videoSyncInfo;
+                    }
+                  );
+                  break;
+                case 'START_VIDEO_INFO':
+                  queryClient.setQueryData<TVideoTitleInfo>(
+                    ['videoTitleInfo', roomCode],
+                    () => {
+                      const videoTitleInfo = {
+                        videoTitle: response.videoTitle,
+                        channelTitle: response.channelTitle,
+                      };
+                      return videoTitleInfo;
+                    }
+                  );
+                  break;
                 case 'ROOM_TITLE':
+                  queryClient.setQueryData<TRoomDetailInfo>(
+                    ['roomDetailInfo', roomCode],
+                    (old) => {
+                      if (old) {
+                        const roomDetailInfo = {
+                          ...old,
+                          roomTitle: response.updatedTitle,
+                        };
+                        return roomDetailInfo;
+                      }
+                    }
+                  );
               }
             }
           );
@@ -175,10 +261,34 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     });
   };
 
+  const sendVideoPlayerState = ({
+    roomCode,
+    playerState,
+    playerCurrentTime,
+    playerRate,
+  }: {
+    roomCode: string;
+    playerState: string;
+    playerCurrentTime: number;
+    playerRate: number;
+  }) => {
+    if (!clientRef.current) return;
+
+    clientRef.current.publish({
+      destination: `/pub/messages/video`,
+      body: JSON.stringify({
+        roomCode,
+        playerState,
+        playerCurrentTime,
+        playerRate,
+      }),
+    });
+  };
+
   const isLoading = state.loading;
   const isError = state.error;
 
-  return { sendChat, isLoading, isError };
+  return { sendChat, sendVideoPlayerState, isLoading, isError };
 };
 
 export default useSocket;

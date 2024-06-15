@@ -4,7 +4,7 @@ export const joinRoom = async ({
   roomCode,
 }: {
   roomCode: string;
-}): Promise<AxiosResponse<TRoomCreationResponse>> => {
+}): Promise<AxiosResponse<TJoinRoomResponse>> => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BASE_URL}/rooms/${roomCode}`,

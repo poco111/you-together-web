@@ -4,7 +4,6 @@ import { addPlaylist } from '@/api/add-playlist';
 const useAddPlaylist = () => {
   return useMutation({
     mutationFn: ({
-      roomCode,
       videoId,
       videoTitle,
       channelTitle,
@@ -12,7 +11,6 @@ const useAddPlaylist = () => {
       duration,
     }: TVideoInfo) =>
       addPlaylist({
-        roomCode,
         videoId,
         videoTitle,
         channelTitle,

@@ -1,17 +1,15 @@
 import axios, { AxiosResponse } from 'axios';
 
 export const addPlaylist = async ({
-  roomCode,
   videoId,
   videoTitle,
   channelTitle,
   thumbnail,
   duration,
 }: {
-  roomCode: string;
   videoId: string;
-  videoTitle: string;
-  channelTitle: string;
+  videoTitle: string | null;
+  channelTitle: string | null;
   thumbnail: string;
   duration: string;
 }): Promise<AxiosResponse<TAddPlaylistResponse>> => {

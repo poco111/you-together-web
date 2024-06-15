@@ -2,11 +2,13 @@ import { ScrollShadow, Textarea } from '@nextui-org/react';
 import { getNicknameFromUserId } from '@/service/user-action';
 import { Dispatch, SetStateAction } from 'react';
 import Icon from '@/assets/icon';
+import { hasChatPermission } from '@/service/user-permissions';
 
 interface IChatProps {
   chats: TChatMessage[];
   chatValue: string;
   participantsList: Array<TUserInfo>;
+  userInfo: TUserInfo | undefined;
   setChatValue: Dispatch<SetStateAction<string>>;
   handleSendChat: (chat: string) => void;
   handleChatKeyDown: (e: React.KeyboardEvent) => void;
@@ -28,10 +30,13 @@ const Chat = ({
   chats,
   chatValue,
   participantsList,
+  userInfo,
   setChatValue,
   handleSendChat,
   handleChatKeyDown,
 }: IChatProps) => {
+  const userHasChatPermission = userInfo && hasChatPermission(userInfo);
+
   return (
     <div>
       <ScrollShadow hideScrollBar className="w-full h-96 mb-3">
@@ -70,13 +75,20 @@ const Chat = ({
 
       <div className="flex gap-3 h-24">
         <Textarea
-          placeholder="채팅을 입력하세요"
+          placeholder={`${
+            userHasChatPermission ? '채팅을 입력하세요' : '채팅 권한이 없습니다'
+          }`}
           value={chatValue}
           onChange={(e) => setChatValue(e.target.value)}
           onKeyDown={handleChatKeyDown}
           className="overflow-auto w-full"
+          disabled={!userHasChatPermission}
         />
-        <button className="pb-5" onClick={() => handleSendChat(chatValue)}>
+        <button
+          className="pb-5"
+          onClick={() => handleSendChat(chatValue)}
+          disabled={!userHasChatPermission}
+        >
           <Icon name="sendMessage" className="w-5 h-5" />
         </button>
       </div>

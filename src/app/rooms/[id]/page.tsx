@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import YouTube from 'react-youtube';
+import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
-import useChatMessage from '@/hooks/use-chat';
+import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
+import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
-import useGetParticipants from '@/hooks/use-participants';
+import useGetParticipants from '@/hooks/use-get-participants';
 import {
   CircularProgress,
   Button,
@@ -15,19 +15,21 @@ import {
   ListboxItem,
   Navbar,
   NavbarBrand,
-  NavbarContent,
-  NavbarItem,
   useDisclosure,
   Input,
 } from '@nextui-org/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import paths from '@/paths';
-import useGetUserInfo from '@/hooks/use-user-info';
+import useGetUserInfo from '@/hooks/use-get-user-info';
 import useChangeRole from '@/hooks/use-change-role';
-import useGetVideoInfo from '@/hooks/use-video-info';
+import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
+import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
+import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
+import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
+import usePlayNextVideo from '@/hooks/use-play-next-video';
 
 import Link from 'next/link';
 import Icon from '@/assets/icon';
@@ -35,20 +37,32 @@ import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
+import { hasVideoEditPermission } from '@/service/user-permissions';
 
 const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   const roomCode = id;
-  const { sendChat, isLoading, isError } = useSocket({ roomCode });
-  const { data: chats = [] } = useChatMessage({ roomCode });
+  const { sendChat, sendVideoPlayerState, isLoading, isError } = useSocket({
+    roomCode,
+  });
+  const { data: chats = [] } = useGetChatMessage({ roomCode });
   const { data: participants = [] } = useGetParticipants({ roomCode });
   const { data: userInfo } = useGetUserInfo({ roomCode });
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
+  const { data: roomDetailInfo } = useGetRoomDetailInfo({ roomCode });
+  const { data: videoTitleInfo } = useGetVideoTitleInfo({ roomCode });
+  const { data: videoSyncInfo } = useGetVideoSyncInfo({ roomCode });
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
   const { mutate: deletePlaylist } = useDeletePlaylist();
+  const { mutate: playNextVideo } = usePlayNextVideo();
   const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
+
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const isFirstVideoPlayRef = useRef<boolean>(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
 
@@ -57,6 +71,8 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   });
 
   const youtubeUrl = watch('youtubeUrl');
+  const userHasVideoEditPermission =
+    userInfo && hasVideoEditPermission(userInfo);
 
   const {
     data: videoInfo,
@@ -67,6 +83,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
   });
 
   const router = useRouter();
+
   const {
     isOpen: isChangeNicknameModalOpen,
     onOpen: onChangeNicknameModalOpen,
@@ -78,7 +95,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     if (isSuccessOfGetVideoInfo && videoInfo) {
       addPlaylist(
         {
-          roomCode: roomCode,
           videoId: videoInfo.videoId,
           videoTitle: videoInfo.videoTitle,
           channelTitle: videoInfo.channelTitle,
@@ -93,6 +109,158 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       );
     }
   }, [roomCode, isSuccessOfGetVideoInfo, videoInfo, addPlaylist, queryClient]);
+
+  useEffect(() => {
+    const curPlayerState = playerRef.current?.getPlayerState();
+    const playerState: { [key: number]: string } = {
+      1: 'PLAY',
+      2: 'PAUSE',
+      0: 'END',
+    };
+
+    console.log(isPlayerReady);
+    if (
+      isPlayerReady &&
+      playerRef.current &&
+      videoSyncInfo?.playerState !== playerState[curPlayerState]
+    ) {
+      if (
+        videoSyncInfo?.playerState === 'PLAY' &&
+        !isFirstVideoPlayRef.current
+      ) {
+        playerRef.current.mute();
+        playerRef.current.playVideo();
+        isFirstVideoPlayRef.current = true;
+      } else if (
+        videoSyncInfo?.playerState === 'PLAY' &&
+        isFirstVideoPlayRef.current
+      ) {
+        if (isMuted) playerRef.current.mute();
+        playerRef.current.playVideo();
+      } else if (videoSyncInfo?.playerState === 'PAUSE') {
+        playerRef.current.pauseVideo();
+      } else if (videoSyncInfo?.playerState === 'END') {
+        playerRef.current.stopVideo();
+        setIsPlayerReady(false);
+        setIsMuted(playerRef.current.isMuted());
+        playerRef.current = null;
+
+        queryClient.setQueryData<TVideoSyncInfo>(['videoSyncInfo', roomCode], {
+          videoId: null,
+          playerState: 'END',
+          playerCurrentTime: 0,
+          playerRate: 1,
+          videoNumber: null,
+        });
+
+        queryClient.setQueryData<TVideoTitleInfo>(
+          ['videoTitleInfo', roomCode],
+          {
+            videoTitle: null,
+            channelTitle: null,
+          }
+        );
+      }
+    }
+
+    if (isPlayerReady && playerRef.current) {
+      const playerCurrentTime = playerRef.current?.getCurrentTime();
+
+      if (
+        videoSyncInfo?.playerCurrentTime &&
+        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
+      ) {
+        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+        if (videoSyncInfo.playerState === 'PAUSE') {
+          playerRef.current?.pauseVideo();
+        }
+      }
+
+      const playerCurrentRate = playerRef.current?.getPlaybackRate();
+
+      if (
+        videoSyncInfo?.playerRate &&
+        videoSyncInfo?.playerRate !== playerCurrentRate
+      ) {
+        playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      }
+    }
+  }, [videoSyncInfo, isPlayerReady, isMuted, roomCode, queryClient]);
+
+  const handleReadyState = (event: YouTubeEvent) => {
+    playerRef.current = event.target;
+    setIsPlayerReady(true);
+  };
+
+  const handleNextVideoButton = () => {
+    playNextVideo({ videoNumber: playlistInfo[0].videoNumber });
+  };
+  // 음소거 설정 상태 저장하기
+  const handlePlayerStateChange = (event: YouTubeEvent) => {
+    const newPlayerState = event.data;
+    const playerState: { [key: number]: string } = {
+      1: 'PLAY',
+      2: 'PAUSE',
+      0: 'END',
+    };
+    // video 상태를 변경시킨 사용자가 아닌, 상태 변화를 전달받은 사용자는
+    // 다시 상태를 변경하지 않도록 하기 위한 조건문
+    if (playerState[newPlayerState] === videoSyncInfo?.playerState) return;
+
+    // 권한 없는 사용자인 경우 alert 띄우기
+    if (
+      !userHasVideoEditPermission &&
+      playerState[newPlayerState] === 'PLAY' &&
+      playerState[newPlayerState] !== videoSyncInfo?.playerState
+    ) {
+      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+      playerRef.current?.pauseVideo();
+      return;
+    } else if (
+      !userHasVideoEditPermission &&
+      playerState[newPlayerState] === 'PAUSE' &&
+      playerState[newPlayerState] !== videoSyncInfo?.playerState
+    ) {
+      playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
+      playerRef.current?.playVideo();
+      return;
+    }
+
+    if (playerState[newPlayerState] === 'PLAY') {
+      sendVideoPlayerState({
+        roomCode: roomCode,
+        playerState: 'PLAY',
+        playerCurrentTime: event.target.getCurrentTime(),
+        playerRate: event.target.getPlaybackRate(),
+      });
+    } else if (playerState[newPlayerState] === 'PAUSE') {
+      sendVideoPlayerState({
+        roomCode: roomCode,
+        playerState: 'PAUSE',
+        playerCurrentTime: event.target.getCurrentTime(),
+        playerRate: event.target.getPlaybackRate(),
+      });
+    }
+  };
+
+  const handlePlayerRateChange = (event: YouTubeEvent) => {
+    const newPlayerRate = event.target.getPlaybackRate();
+
+    if (newPlayerRate === videoSyncInfo?.playerRate) return;
+
+    // 권한 없는 사용자인 경우 alert 띄우기
+    if (!userHasVideoEditPermission) {
+      playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      return;
+    }
+
+    sendVideoPlayerState({
+      roomCode: roomCode,
+      playerState: 'RATE',
+      playerCurrentTime: event.target.getCurrentTime(),
+      playerRate: newPlayerRate,
+    });
+  };
 
   if (isLoading)
     return (
@@ -143,38 +311,135 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             <span className="text-red-500">T</span>ogether
           </Link>
         </NavbarBrand>
-        <NavbarContent justify="center" />
-        <NavbarContent className="flex" justify="end">
-          <NavbarItem>
-            <div>방정보</div>
-          </NavbarItem>
-        </NavbarContent>
       </Navbar>
 
-      <div className="flex w-full h-auto justify-center items-center px-40 gap-4">
-        <div className="flex flex-col justify-between gap-2">
-          <YouTube
-            videoId="cyrrGfZbXFA"
-            opts={{
-              width: 800,
-              height: 450,
-            }}
-          />
-          <div>비디오 인포</div>
+      <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
+        <div className="flex flex-col gap-2">
+          {!videoSyncInfo?.videoId && (
+            <div className="flex items-center justify-center w-videoWidth h-videoHeight bg-emptyPlaylist">
+              <div className="flex flex-col items-center">
+                <p className="text-default-400">재생목록이 비었습니다</p>
+                <p className="text-default-300">{`There are no videos in the room's playlist`}</p>
+              </div>
+            </div>
+          )}
+          {videoSyncInfo?.videoId && (
+            <YouTube
+              key={videoSyncInfo?.videoNumber}
+              videoId={videoSyncInfo?.videoId}
+              opts={{
+                width: 680,
+                height: 480,
+                playerVars: {
+                  autoplay: 0,
+                  disablekb: 1,
+                  rel: 0,
+                },
+              }}
+              onReady={handleReadyState}
+              onStateChange={handlePlayerStateChange}
+              onPlaybackRateChange={handlePlayerRateChange}
+            />
+          )}
+          <div className="flex gap-2 items-center justify-between">
+            {videoTitleInfo?.videoTitle && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-red-500">현재 재생중인 영상</p>
+                <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
+                <p className="text-xs text-neutral-400">
+                  {videoTitleInfo?.channelTitle}
+                </p>
+              </div>
+            )}
+            {!videoTitleInfo?.videoTitle && (
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-red-500">
+                  현재 재생중인 영상이 없습니다
+                </p>
+              </div>
+            )}
+            <Button
+              size="sm"
+              variant="light"
+              disabled={
+                !userHasVideoEditPermission || playlistInfo?.length === 0
+              }
+              onClick={() => handleNextVideoButton()}
+            >
+              <Icon
+                name="playNextVideo"
+                className={`size-5 ${
+                  !userHasVideoEditPermission || playlistInfo?.length === 0
+                    ? 'text-neutral-700'
+                    : 'text-red-500'
+                }`}
+              />
+            </Button>
+          </div>
         </div>
         <div className="flex flex-col w-80 gap-2">
-          <div className="w-full min-h-14 max-h-52 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
+          <div className="w-full min-h-10 p-3 border-small rounded-small border-default-200 dark:border-default-100">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2 w-2/3">
+                <div className="text-sm font-semibold">
+                  {roomDetailInfo?.roomTitle}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 w-1/3 justify-end pl-1">
+                <ChangeRoomTitleModal
+                  currentRoomTitle={roomDetailInfo?.roomTitle}
+                />
+                <Icon
+                  name="peopleGroup"
+                  className={`size-5 ${
+                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (roomDetailInfo?.capacity ?? 0)
+                      ? 'text-red-500'
+                      : ''
+                  }`}
+                />
+                <div
+                  className={`text-sm ${
+                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (roomDetailInfo?.capacity ?? 0)
+                      ? 'text-red-500'
+                      : ''
+                  }`}
+                >
+                  {roomDetailInfo?.currentParticipant}/
+                  {roomDetailInfo?.capacity}
+                </div>
+                {roomDetailInfo?.passwordExist ? (
+                  <Icon name="lock" className="text-red-500" />
+                ) : (
+                  <Icon name="lockOpen" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full min-h-14 max-h-44 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
             <form
               className="flex mb-2"
               onSubmit={handleSubmit(handlePlaylistAdd)}
             >
               <Input
                 defaultValue=""
-                placeholder="YouTube 영상의 url을 입력하세요"
+                placeholder={`${
+                  userHasVideoEditPermission
+                    ? 'YouTube 영상의 URL을 입력하세요'
+                    : '영상을 추가할 수 있는 권한이 없습니다'
+                }`}
                 className="h-7 text-xs"
+                disabled={!userHasVideoEditPermission}
                 {...register('youtubeUrl')}
               />
-              <Button size="sm" variant="light" type="submit">
+              <Button
+                size="sm"
+                variant="light"
+                type="submit"
+                disabled={!userHasVideoEditPermission}
+              >
                 <Icon name="plus" />
               </Button>
             </form>
@@ -182,12 +447,12 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
               {playlistInfo?.length === 0 ? (
                 <ListboxItem
                   key="empty"
-                  textValue="Empty"
+                  textValue="empty"
                   className="flex cursor-default"
                 >
                   <div className="flex justify-center items-center w-full h-full">
                     <span className="text-default-400">
-                      플레이리스트가 비었습니다
+                      재생목록이 비었습니다
                     </span>
                   </div>
                 </ListboxItem>
@@ -196,10 +461,17 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                   <ListboxItem
                     key={item.videoNumber}
                     textValue="Video"
-                    className="flex"
+                    className="flex cursor-default"
                   >
                     <div className="flex gap-4 items-center">
-                      <Icon name="gripLines" />
+                      <Icon
+                        name="gripLines"
+                        className={`${
+                          userHasVideoEditPermission
+                            ? 'cursor-pointer'
+                            : 'invisible'
+                        }`}
+                      />
                       <Image
                         className="size-6"
                         alt="썸네일"
@@ -207,21 +479,26 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                       />
                       <div className="flex justify-between items-center gap-2">
                         <div className="flex flex-col">
-                          <span className="text-bold text-sm truncate w-40">
+                          <span className="text-bold text-xs whitespace-normal w-40">
                             {item.videoTitle}
                           </span>
                           <span className="text-tiny text-default-400 truncate">
                             {item.channelTitle}
                           </span>
                         </div>
-                        <div className="flex gap-2 pl-4">
-                          <Icon name="play" className="invisible" />
+                        <div className="flex gap-2 pl-6">
                           <button
+                            disabled={!userHasVideoEditPermission}
                             onClick={() =>
                               handlePlaylistDelete(item.videoNumber)
                             }
                           >
-                            <Icon name="trashCan" />
+                            <Icon
+                              name="trashCan"
+                              className={`${
+                                !userHasVideoEditPermission ? 'invisible' : null
+                              }`}
+                            />
                           </button>
                         </div>
                       </div>
@@ -236,6 +513,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             chats={chats}
             chatValue={chatValue}
             setChatValue={setChatValue}
+            userInfo={userInfo}
             participantsList={participantsList}
             handleSendChat={handleSendChat}
             handleChatKeyDown={handleChatKeyDown}
