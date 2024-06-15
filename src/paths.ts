@@ -2,11 +2,8 @@ const paths = {
   home() {
     return '/';
   },
-  rooms() {
-    return '/rooms';
-  },
-  room(roomslug: string) {
-    return `/rooms/${roomslug}`;
+  room(roomCode: string) {
+    return `/${roomCode}`;
   },
 };
 

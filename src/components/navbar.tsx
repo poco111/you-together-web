@@ -5,7 +5,6 @@ import {
   NavbarBrand,
   NavbarContent,
   NavbarItem,
-  Button,
 } from '@nextui-org/react';
 import Link from 'next/link';
 
@@ -22,11 +21,6 @@ const NavBar = () => {
       <NavbarContent className="flex" justify="end">
         <NavbarItem>
           <CreateRoomModal />
-        </NavbarItem>
-        <NavbarItem>
-          <Link href={paths.rooms()} className="font-semibold text-large ">
-            참가하기
-          </Link>
         </NavbarItem>
       </NavbarContent>
     </Navbar>

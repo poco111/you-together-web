@@ -39,8 +39,8 @@ import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
 import { hasVideoEditPermission } from '@/service/user-permissions';
 
-const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
-  const roomCode = id;
+const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
+  const roomCode = roomId;
   const { sendChat, sendVideoPlayerState, isLoading, isError } = useSocket({
     roomCode,
   });
@@ -118,7 +118,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       0: 'END',
     };
 
-    console.log(isPlayerReady);
     if (
       isPlayerReady &&
       playerRef.current &&
@@ -271,7 +270,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     );
 
   if (isError) {
-    router.push(paths.rooms());
+    router.push(paths.home());
   }
   // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
 
