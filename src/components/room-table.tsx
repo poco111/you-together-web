@@ -57,15 +57,9 @@ const RoomTable = () => {
       }
     >
       <TableHeader>
-        <TableColumn width={300}>
-          <div className="text-emerald-600">THUMBNAIl</div>
-        </TableColumn>
-        <TableColumn width={700}>
-          <div className="text-emerald-600">TITLE</div>
-        </TableColumn>
-        <TableColumn width={200}>
-          <div className="text-emerald-600">STATUS</div>
-        </TableColumn>
+        <TableColumn width={300}>THUMBNAIL</TableColumn>
+        <TableColumn width={700}>TITLE</TableColumn>
+        <TableColumn width={200}>STATUS</TableColumn>
       </TableHeader>
 
       <TableBody
@@ -95,7 +89,7 @@ const RoomTable = () => {
                     src={videoThumbnail}
                   />
                 ) : (
-                  <div className="border-0 border-gray-200 flex items-center w-emptyThumbnailWidth h-emptyThumbnailHeight justify-center bg-emptyThumbnail">
+                  <div className="border-0 rounded-lg border-gray-200 flex items-center w-emptyThumbnailWidth h-emptyThumbnailHeight justify-center bg-emptyThumbnail">
                     <p className="text-xs text-default-400">
                       현재 재생중인 영상이 없습니다
                     </p>
