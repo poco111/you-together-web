@@ -58,12 +58,14 @@ const RoomTable = () => {
     >
       <TableHeader>
         <TableColumn width={300}>
-          <div>THUMBNAIl</div>
+          <div className="text-emerald-600">THUMBNAIl</div>
         </TableColumn>
         <TableColumn width={700}>
-          <div>TITLE</div>
+          <div className="text-emerald-600">TITLE</div>
         </TableColumn>
-        <TableColumn width={200}>STATUS</TableColumn>
+        <TableColumn width={200}>
+          <div className="text-emerald-600">STATUS</div>
+        </TableColumn>
       </TableHeader>
 
       <TableBody
@@ -116,17 +118,13 @@ const RoomTable = () => {
                   onClick={() => handleJoin(roomCode)}
                   as={Link}
                   href={paths.room(roomCode)}
-                  color={isFull ? 'danger' : 'primary'}
                   variant={isFull ? 'flat' : 'solid'}
                   isDisabled={isFull}
+                  className={isFull ? 'bg-rose-800' : 'bg-emerald-700'}
                 >
                   <span>참여</span>
                   <span>{`${currentParticipant}/${capacity}`}</span>
-                  {passwordExist ? (
-                    <Icon name="lock" />
-                  ) : (
-                    <Icon name="lockOpen" />
-                  )}
+                  <Icon name={passwordExist ? 'lock' : 'lockOpen'} />
                 </Button>
               </TableCell>
             </TableRow>
