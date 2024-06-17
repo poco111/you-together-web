@@ -334,7 +334,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
           <div className="flex gap-2 items-center justify-between">
             {videoTitleInfo?.videoTitle && (
               <div className="flex flex-col gap-1">
-                <p className="text-sm text-red-500">현재 재생중인 영상</p>
+                <p className="text-sm text-emerald-500">현재 재생중인 영상</p>
                 <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
                 <p className="text-xs text-neutral-400">
                   {videoTitleInfo?.channelTitle}
@@ -343,7 +343,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
             )}
             {!videoTitleInfo?.videoTitle && (
               <div className="flex flex-col gap-1">
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-emerald-500">
                   현재 재생중인 영상이 없습니다
                 </p>
               </div>
@@ -361,7 +361,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
                 className={`size-5 ${
                   !userHasVideoEditPermission || playlistInfo?.length === 0
                     ? 'text-neutral-700'
-                    : 'text-red-500'
+                    : 'text-emerald-500'
                 }`}
               />
             </Button>
@@ -382,7 +382,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
                 <Icon
                   name="peopleGroup"
                   className={`size-5 ${
-                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (participantsList?.length ?? 0) >=
                     (roomDetailInfo?.capacity ?? 0)
                       ? 'text-red-500'
                       : ''
@@ -390,14 +390,13 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
                 />
                 <div
                   className={`text-sm ${
-                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (participantsList?.length ?? 0) >=
                     (roomDetailInfo?.capacity ?? 0)
                       ? 'text-red-500'
                       : ''
                   }`}
                 >
-                  {roomDetailInfo?.currentParticipant}/
-                  {roomDetailInfo?.capacity}
+                  {participantsList?.length}/{roomDetailInfo?.capacity}
                 </div>
                 {roomDetailInfo?.passwordExist ? (
                   <Icon name="lock" className="text-red-500" />
