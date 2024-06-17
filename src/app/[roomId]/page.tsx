@@ -13,8 +13,6 @@ import {
   Image,
   Listbox,
   ListboxItem,
-  Navbar,
-  NavbarBrand,
   useDisclosure,
   Input,
 } from '@nextui-org/react';
@@ -31,7 +29,7 @@ import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
 import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
 import usePlayNextVideo from '@/hooks/use-play-next-video';
 
-import Link from 'next/link';
+import NavBar from '@/components/navbar';
 import Icon from '@/assets/icon';
 import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
@@ -303,14 +301,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
   return (
     <>
-      <Navbar className="shadow-gray-800 shadow-lg m-0">
-        <NavbarBrand>
-          <Link href={paths.home()} className="font-bold text-2xl">
-            <span className="text-red-500">Y</span>ou
-            <span className="text-red-500">T</span>ogether
-          </Link>
-        </NavbarBrand>
-      </Navbar>
+      <NavBar isHomePage={false} />
 
       <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
         <div className="flex flex-col gap-2">

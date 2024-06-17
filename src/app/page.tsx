@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 const HomePage = () => {
   return (
     <>
-      <NavBar />
+      <NavBar isHomePage={true} />
       <div className="flex justify-center items-center px-40">
         <Suspense>
           <RoomTable />

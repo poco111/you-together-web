@@ -8,21 +8,23 @@ import {
 } from '@nextui-org/react';
 import Link from 'next/link';
 
-const NavBar = () => {
+const NavBar = ({ isHomePage }: { isHomePage: boolean }) => {
   return (
-    <Navbar className="shadow-gray-800 shadow-lg ">
+    <Navbar isBordered isBlurred={false} className="bg-application">
       <NavbarBrand>
-        <Link href={paths.home()} className="font-bold text-2xl">
-          <span className="text-red-500">Y</span>ou
-          <span className="text-red-500">T</span>ogether
+        <Link href={paths.home()} className="font-semibold text-2xl">
+          <span className="text-emerald-500">YouTogether</span>
         </Link>
       </NavbarBrand>
-      <NavbarContent justify="center" />
-      <NavbarContent className="flex" justify="end">
-        <NavbarItem>
-          <CreateRoomModal />
-        </NavbarItem>
-      </NavbarContent>
+      {isHomePage && (
+        <>
+          <NavbarContent className="flex" justify="end">
+            <NavbarItem>
+              <CreateRoomModal />
+            </NavbarItem>
+          </NavbarContent>
+        </>
+      )}
     </Navbar>
   );
 };
