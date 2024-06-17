@@ -24,6 +24,7 @@ const config: Config = {
       backgroundColor: {
         emptyPlaylist: 'hsl(240 4% 16%)',
         emptyThumbnail: 'hsl(240 4% 16%)',
+        application: '#151516',
       },
     },
   },
