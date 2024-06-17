@@ -17,6 +17,7 @@ import paths from '@/paths';
 import { useGetRooms } from '@/hooks/use-get-rooms';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { useRouter } from 'next/navigation';
+import Icon from '@/assets/icon';
 
 const RoomTable = () => {
   const {
@@ -77,18 +78,27 @@ const RoomTable = () => {
           roomTitle,
           videoThumbnail,
           videoTitle,
+          passwordExist,
         }) => {
           const isFull = currentParticipant >= capacity;
 
           return (
             <TableRow key={roomCode}>
               <TableCell>
-                <Image
-                  width={150}
-                  height={100}
-                  alt="썸네일"
-                  src={videoThumbnail}
-                />
+                {videoThumbnail ? (
+                  <Image
+                    width={150}
+                    height={100}
+                    alt="썸네일"
+                    src={videoThumbnail}
+                  />
+                ) : (
+                  <div className="border-0 border-gray-200 flex items-center w-emptyThumbnailWidth h-emptyThumbnailHeight justify-center bg-emptyThumbnail">
+                    <p className="text-xs text-default-400">
+                      현재 재생중인 영상이 없습니다
+                    </p>
+                  </div>
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
@@ -96,7 +106,8 @@ const RoomTable = () => {
                     {roomTitle}
                   </span>
                   <span className="text-bold text-sm capitalize text-default-400">
-                    {videoTitle}
+                    {(videoTitle && videoTitle) ||
+                      '현재 재생중인 영상이 없습니다'}
                   </span>
                 </div>
               </TableCell>
@@ -111,6 +122,11 @@ const RoomTable = () => {
                 >
                   <span>참여</span>
                   <span>{`${currentParticipant}/${capacity}`}</span>
+                  {passwordExist ? (
+                    <Icon name="lock" />
+                  ) : (
+                    <Icon name="lockOpen" />
+                  )}
                 </Button>
               </TableCell>
             </TableRow>
