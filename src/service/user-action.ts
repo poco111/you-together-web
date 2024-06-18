@@ -33,7 +33,7 @@ export const getDropdownContents = (
   const userRating = userRatings.get(userInfo?.role);
   const targetUserRating = userRatings.get(targetUserInfo?.role);
   userRatings.forEach((rating, role) => {
-    if (userRating <= rating && rating < targetUserRating) {
+    if (userRating <= rating && targetUserRating !== rating) {
       dropdownContents.push(role);
     }
   });

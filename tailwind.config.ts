@@ -12,15 +12,19 @@ const config: Config = {
     extend: {
       width: {
         videoWidth: '680px',
+        emptyThumbnailWidth: '150px',
       },
       height: {
         videoHeight: '480px',
+        emptyThumbnailHeight: '100px',
       },
       colors: {
         textDanger: 'hsl(339, 90%, 51%)',
       },
       backgroundColor: {
         emptyPlaylist: 'hsl(240 4% 16%)',
+        emptyThumbnail: 'hsl(240 4% 16%)',
+        application: '#151516',
       },
     },
   },

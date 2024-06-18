@@ -13,8 +13,6 @@ import {
   Image,
   Listbox,
   ListboxItem,
-  Navbar,
-  NavbarBrand,
   useDisclosure,
   Input,
 } from '@nextui-org/react';
@@ -31,7 +29,7 @@ import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
 import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
 import usePlayNextVideo from '@/hooks/use-play-next-video';
 
-import Link from 'next/link';
+import NavBar from '@/components/navbar';
 import Icon from '@/assets/icon';
 import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
@@ -39,8 +37,8 @@ import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
 import { hasVideoEditPermission } from '@/service/user-permissions';
 
-const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
-  const roomCode = id;
+const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
+  const roomCode = roomId;
   const { sendChat, sendVideoPlayerState, isLoading, isError } = useSocket({
     roomCode,
   });
@@ -118,7 +116,6 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
       0: 'END',
     };
 
-    console.log(isPlayerReady);
     if (
       isPlayerReady &&
       playerRef.current &&
@@ -271,7 +268,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
     );
 
   if (isError) {
-    router.push(paths.rooms());
+    router.push(paths.home());
   }
   // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
 
@@ -304,14 +301,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
   return (
     <>
-      <Navbar className="shadow-gray-800 shadow-lg m-0">
-        <NavbarBrand>
-          <Link href={paths.home()} className="font-bold text-2xl">
-            <span className="text-red-500">Y</span>ou
-            <span className="text-red-500">T</span>ogether
-          </Link>
-        </NavbarBrand>
-      </Navbar>
+      <NavBar isHomePage={false} />
 
       <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
         <div className="flex flex-col gap-2">
@@ -344,7 +334,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
           <div className="flex gap-2 items-center justify-between">
             {videoTitleInfo?.videoTitle && (
               <div className="flex flex-col gap-1">
-                <p className="text-sm text-red-500">현재 재생중인 영상</p>
+                <p className="text-sm text-emerald-500">현재 재생중인 영상</p>
                 <p className="text-lg">{videoTitleInfo?.videoTitle}</p>
                 <p className="text-xs text-neutral-400">
                   {videoTitleInfo?.channelTitle}
@@ -353,7 +343,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
             )}
             {!videoTitleInfo?.videoTitle && (
               <div className="flex flex-col gap-1">
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-emerald-500">
                   현재 재생중인 영상이 없습니다
                 </p>
               </div>
@@ -371,7 +361,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 className={`size-5 ${
                   !userHasVideoEditPermission || playlistInfo?.length === 0
                     ? 'text-neutral-700'
-                    : 'text-red-500'
+                    : 'text-emerald-500'
                 }`}
               />
             </Button>
@@ -392,7 +382,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 <Icon
                   name="peopleGroup"
                   className={`size-5 ${
-                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (participantsList?.length ?? 0) >=
                     (roomDetailInfo?.capacity ?? 0)
                       ? 'text-red-500'
                       : ''
@@ -400,14 +390,13 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 />
                 <div
                   className={`text-sm ${
-                    (roomDetailInfo?.currentParticipant ?? 0) >=
+                    (participantsList?.length ?? 0) >=
                     (roomDetailInfo?.capacity ?? 0)
                       ? 'text-red-500'
                       : ''
                   }`}
                 >
-                  {roomDetailInfo?.currentParticipant}/
-                  {roomDetailInfo?.capacity}
+                  {participantsList?.length}/{roomDetailInfo?.capacity}
                 </div>
                 {roomDetailInfo?.passwordExist ? (
                   <Icon name="lock" className="text-red-500" />
@@ -420,7 +409,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
 
           <div className="w-full min-h-14 max-h-44 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
             <form
-              className="flex mb-2"
+              className="flex items-center mb-2 ml-2"
               onSubmit={handleSubmit(handlePlaylistAdd)}
             >
               <Input
@@ -439,8 +428,9 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                 variant="light"
                 type="submit"
                 disabled={!userHasVideoEditPermission}
+                className="mt-2"
               >
-                <Icon name="plus" />
+                <Icon name="plus" className="size-4" />
               </Button>
             </form>
             <Listbox aria-label="Playlist">
@@ -486,7 +476,7 @@ const RoomPage = ({ params: { id } }: { params: { id: string } }) => {
                             {item.channelTitle}
                           </span>
                         </div>
-                        <div className="flex gap-2 pl-6">
+                        <div className="flex gap-2 pl-7">
                           <button
                             disabled={!userHasVideoEditPermission}
                             onClick={() =>

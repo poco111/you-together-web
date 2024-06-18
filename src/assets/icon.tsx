@@ -14,6 +14,7 @@ import { IoIosSend } from 'react-icons/io';
 import { GoPlusCircle } from 'react-icons/go';
 import { TbPlayerTrackNextFilled } from 'react-icons/tb';
 import { MdOutlineChangeCircle } from 'react-icons/md';
+import { IoPerson } from 'react-icons/io5';
 
 const iconTypes = {
   arrowUp: FaAngleUp,
@@ -30,6 +31,7 @@ const iconTypes = {
   peopleGroup: FaPeopleGroup,
   playNextVideo: TbPlayerTrackNextFilled,
   changeCircle: MdOutlineChangeCircle,
+  person: IoPerson,
 };
 
 type TIconName = {

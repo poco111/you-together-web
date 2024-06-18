@@ -94,7 +94,14 @@ const ParticipantsList = ({
             getDropdownContents(userInfo, participant).contentsType === 'NONE';
           return (
             <TableRow key={participant.userId}>
-              <TableCell>{participant.nickname}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {participant.nickname}
+                  {userInfo?.nickname === participant.nickname && (
+                    <Icon name="person" className="text-emerald-600" />
+                  )}
+                </div>
+              </TableCell>
               <TableCell>{participant.role}</TableCell>
               <TableCell>
                 <Dropdown>

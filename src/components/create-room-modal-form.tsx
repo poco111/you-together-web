@@ -58,7 +58,7 @@ const CreateRoomModal = () => {
   return (
     <>
       <span
-        className="font-semibold text-large cursor-pointer"
+        className="font-medium text-large cursor-pointer"
         onClick={onCreateRoomModalOpen}
       >
         방 만들기
