@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Button,
   Modal,
@@ -46,6 +46,8 @@ const ChangeNicknameModal = ({
 
   const { mutate: changeNickname } = useChangeNickname();
   const newNickname = watch('newNickname');
+  const prevNickname = useRef<string | null>(null);
+
   const {
     data: checkDuplicateData,
     refetch: checkDuplicate,
@@ -57,6 +59,15 @@ const ChangeNicknameModal = ({
   });
 
   useEffect(() => {
+    if (prevNickname.current === newNickname) {
+      if (checkDuplicateData?.data.nicknameIsUnique === false) {
+        setError('newNickname', {
+          type: 'duplicate_string',
+          message: '이미 사용중인 닉네임입니다',
+        });
+      }
+      return;
+    }
     if (formErrors.newNickname?.type === 'duplicate_string') {
       clearErrors('newNickname');
       queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
@@ -64,22 +75,21 @@ const ChangeNicknameModal = ({
         () => null
       );
     }
+
     if (checkDuplicateData?.data.nicknameIsUnique !== null) {
       queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
         ['nickname'],
         () => null
       );
     }
-  }, [newNickname, formErrors, clearErrors, queryClient]);
-
-  useEffect(() => {
-    if (checkDuplicateData?.data.nicknameIsUnique === false) {
-      setError('newNickname', {
-        type: 'duplicate_string',
-        message: '이미 사용중인 닉네임입니다',
-      });
-    }
-  }, [checkDuplicateData, setError]);
+  }, [
+    newNickname,
+    formErrors,
+    clearErrors,
+    queryClient,
+    checkDuplicateData,
+    setError,
+  ]);
 
   const handleNicknameChange: SubmitHandler<TNicknameChangePayload> = ({
     newNickname,
@@ -102,6 +112,7 @@ const ChangeNicknameModal = ({
   };
 
   const handleCheckDuplicate = () => {
+    prevNickname.current = newNickname;
     checkDuplicate();
   };
 
