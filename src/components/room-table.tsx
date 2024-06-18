@@ -38,8 +38,8 @@ const RoomTable = () => {
 
   const roomsList = roomData?.pages.map((page) => page.rooms).flat();
   const loadingState = isPending ? 'loading' : 'idle';
-  const handleJoin = (roomCode: string) => {
-    router.push(paths.room(roomCode));
+  const handleJoin = (roomCode: string, passwordExist: boolean) => {
+    router.push(paths.room(roomCode, passwordExist));
   };
 
   return (
@@ -109,9 +109,7 @@ const RoomTable = () => {
               </TableCell>
               <TableCell>
                 <Button
-                  onClick={() => handleJoin(roomCode)}
-                  as={Link}
-                  href={paths.room(roomCode)}
+                  onClick={() => handleJoin(roomCode, passwordExist)}
                   variant={isFull ? 'flat' : 'solid'}
                   isDisabled={isFull}
                   className={isFull ? 'bg-rose-800' : 'bg-emerald-700'}
