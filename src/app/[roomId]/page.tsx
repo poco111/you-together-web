@@ -409,7 +409,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
           <div className="w-full min-h-14 max-h-44 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
             <form
-              className="flex mb-2"
+              className="flex items-center mb-2 ml-2"
               onSubmit={handleSubmit(handlePlaylistAdd)}
             >
               <Input
@@ -428,8 +428,9 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
                 variant="light"
                 type="submit"
                 disabled={!userHasVideoEditPermission}
+                className="mt-2"
               >
-                <Icon name="plus" />
+                <Icon name="plus" className="size-4" />
               </Button>
             </form>
             <Listbox aria-label="Playlist">
@@ -475,7 +476,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
                             {item.channelTitle}
                           </span>
                         </div>
-                        <div className="flex gap-2 pl-6">
+                        <div className="flex gap-2 pl-7">
                           <button
                             disabled={!userHasVideoEditPermission}
                             onClick={() =>
