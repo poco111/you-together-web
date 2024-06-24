@@ -46,7 +46,7 @@ const ParticipantsList = ({
       case 'NICK_NAME':
         return (
           <DropdownMenu aria-label="Action menu">
-            <DropdownItem onClick={onChangeNicknameModalOpen}>
+            <DropdownItem onPress={onChangeNicknameModalOpen}>
               닉네임 변경
             </DropdownItem>
           </DropdownMenu>
@@ -58,7 +58,7 @@ const ParticipantsList = ({
               <DropdownItem
                 key={role}
                 textValue="role"
-                onClick={() =>
+                onPress={() =>
                   changeUserRole({
                     targetUserId: targetUserInfo.userId,
                     newUserRole: role,

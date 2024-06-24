@@ -12,7 +12,6 @@ import {
   TableRow,
 } from '@nextui-org/react';
 
-import Link from 'next/link';
 import paths from '@/paths';
 import { useGetRooms } from '@/hooks/use-get-rooms';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
@@ -109,7 +108,7 @@ const RoomTable = () => {
               </TableCell>
               <TableCell>
                 <Button
-                  onClick={() => handleJoin(roomCode, passwordExist)}
+                  onPress={() => handleJoin(roomCode, passwordExist)}
                   variant={isFull ? 'flat' : 'solid'}
                   isDisabled={isFull}
                   className={isFull ? 'bg-rose-800' : 'bg-emerald-700'}
