@@ -46,7 +46,7 @@ const CreateRoomModal = () => {
         },
       }) => {
         onCreateRoomModalClose();
-        router.push(paths.room(roomCode));
+        router.push(paths.room(roomCode, payload.password ? true : false));
       },
       onError: () => {
         onCreateRoomModalClose();
