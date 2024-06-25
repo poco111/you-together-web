@@ -4,6 +4,7 @@ import StompJs, { Client } from '@stomp/stompjs';
 import { useQueryClient } from '@tanstack/react-query';
 import { joinRoom } from '@/api/join-room';
 import { AxiosError } from 'axios';
+import CryptoJS from 'crypto-js';
 
 interface useSocketProps {
   roomCode: string;
@@ -104,7 +105,14 @@ const useSocket = ({
           password: isPasswordRoom ? password : null,
         });
 
-        if (password) localStorage.setItem('roomPassword', password);
+        if (password) {
+          const encryptedPassword = CryptoJS.AES.encrypt(
+            password,
+            `${process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY}`
+          ).toString();
+
+          sessionStorage.setItem('roomPassword', encryptedPassword);
+        }
 
         const {
           roomTitle,
@@ -320,8 +328,8 @@ const useSocket = ({
         clientRef.current.deactivate();
         clientRef.current = null;
       }
-      if (localStorage.getItem('roomPassword')) {
-        localStorage.removeItem('roomPassword');
+      if (sessionStorage.getItem('roomPassword')) {
+        sessionStorage.removeItem('roomPassword');
       }
     };
   }, [roomCode, queryClient, isPasswordRoom, password]);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import CryptoJS from 'crypto-js';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
@@ -47,9 +48,13 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   );
 
   useEffect(() => {
-    const savedPassword = localStorage.getItem('roomPassword');
+    const savedPassword = sessionStorage.getItem('roomPassword');
     if (savedPassword) {
-      setPassword(savedPassword);
+      const decryptedPassword = CryptoJS.AES.decrypt(
+        savedPassword,
+        `${process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY}`
+      ).toString(CryptoJS.enc.Utf8);
+      setPassword(decryptedPassword);
     }
   }, []);
 
