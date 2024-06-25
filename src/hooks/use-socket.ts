@@ -103,6 +103,9 @@ const useSocket = ({
           roomCode,
           password: isPasswordRoom ? password : null,
         });
+
+        if (password) localStorage.setItem('roomPassword', password);
+
         const {
           roomTitle,
           capacity,
@@ -315,6 +318,10 @@ const useSocket = ({
     return () => {
       if (clientRef.current) {
         clientRef.current.deactivate();
+        clientRef.current = null;
+      }
+      if (localStorage.getItem('roomPassword')) {
+        localStorage.removeItem('roomPassword');
       }
     };
   }, [roomCode, queryClient, isPasswordRoom, password]);

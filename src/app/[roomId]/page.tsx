@@ -46,6 +46,13 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
     searchParams.get('passwordExist') ?? 'false'
   );
 
+  useEffect(() => {
+    const savedPassword = localStorage.getItem('roomPassword');
+    if (savedPassword) {
+      setPassword(savedPassword);
+    }
+  }, []);
+
   const {
     sendChat,
     sendVideoPlayerState,
