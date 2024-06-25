@@ -3,19 +3,28 @@ import SockJs from 'sockjs-client';
 import StompJs, { Client } from '@stomp/stompjs';
 import { useQueryClient } from '@tanstack/react-query';
 import { joinRoom } from '@/api/join-room';
+import { AxiosError } from 'axios';
+import CryptoJS from 'crypto-js';
 
 interface useSocketProps {
   roomCode: string;
+  passwordExist: boolean;
+  password?: string | null;
 }
 
 type ACTIONTYPE =
   | { type: 'LOADING' }
+  | { type: 'PASSWORD_LOADING' }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR'; message: string };
+  | { type: 'ERROR'; message: string }
+  | { type: 'PASSWORD_ERROR'; message: string };
 
 const initialState = {
   loading: false,
-  error: '',
+  passwordLoading: false,
+  generalError: false,
+  passwordError: false,
+  errorMessage: '',
 };
 
 const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
@@ -23,19 +32,46 @@ const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
     case 'LOADING':
       return {
         loading: true,
-        error: '',
+        passwordLoading: false,
+        generalError: false,
+        passwordError: false,
+        errorMessage: '',
+      };
+
+    case 'PASSWORD_LOADING':
+      return {
+        loading: false,
+        passwordLoading: true,
+        generalError: false,
+        passwordError: false,
+        errorMessage: '',
       };
 
     case 'SUCCESS':
       return {
         loading: false,
-        error: '',
+        passwordLoading: false,
+        generalError: false,
+        passwordError: false,
+        errorMessage: '',
       };
 
     case 'ERROR':
       return {
         loading: false,
-        error: action.message,
+        passwordLoading: false,
+        generalError: true,
+        passwordError: false,
+        errorMessage: action.message,
+      };
+
+    case 'PASSWORD_ERROR':
+      return {
+        loading: false,
+        passwordLoading: false,
+        generalError: false,
+        passwordError: true,
+        errorMessage: action.message,
       };
     default:
       return state;
@@ -44,7 +80,11 @@ const reducer = (state: typeof initialState, action: ACTIONTYPE) => {
 
 const MAX_CHAT_LENGTH = 100;
 
-const useSocket = ({ roomCode }: useSocketProps) => {
+const useSocket = ({
+  roomCode,
+  passwordExist: isPasswordRoom,
+  password,
+}: useSocketProps) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const queryClient = useQueryClient();
   const clientRef = useRef<StompJs.Client | null>(null);
@@ -53,9 +93,27 @@ const useSocket = ({ roomCode }: useSocketProps) => {
   useEffect(() => {
     dispatch({ type: 'LOADING' });
 
+    if (isPasswordRoom && !password) {
+      dispatch({ type: 'PASSWORD_LOADING' });
+      return;
+    }
+
     const joinRoomHandler = async () => {
       try {
-        const response = await joinRoom({ roomCode });
+        const response = await joinRoom({
+          roomCode,
+          password: isPasswordRoom ? password : null,
+        });
+
+        if (password) {
+          const encryptedPassword = CryptoJS.AES.encrypt(
+            password,
+            `${process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY}`
+          ).toString();
+
+          sessionStorage.setItem('roomPassword', encryptedPassword);
+        }
+
         const {
           roomTitle,
           capacity,
@@ -68,6 +126,7 @@ const useSocket = ({ roomCode }: useSocketProps) => {
           currentVideoTime,
           currentVideoNumber,
         } = response.data.data;
+
         queryClient.setQueryData<TRoomDetailInfo>(
           ['roomDetailInfo', roomCode],
           () => {
@@ -233,7 +292,29 @@ const useSocket = ({ roomCode }: useSocketProps) => {
         };
         stompClient.activate();
       } catch (error) {
-        dispatch({ type: 'ERROR', message: '방에 참가하지 못했습니다.' });
+        hasJoinedRef.current = false;
+        if (error instanceof AxiosError) {
+          const { type } = error.response?.data?.data?.[0];
+          const { message } = error.response?.data?.data?.[0];
+          if (type === 'PasswordNotMatchException') {
+            dispatch({
+              type: 'PASSWORD_ERROR',
+              message: message,
+            });
+          } else if (type === 'SingleRoomParticipationViolationException') {
+            dispatch({
+              type: 'ERROR',
+              message: message,
+            });
+          } else if (type === 'RoomCapacityExceededException') {
+            dispatch({
+              type: 'ERROR',
+              message: message,
+            });
+          }
+        } else {
+          dispatch({ type: 'ERROR', message: '방에 참가하지 못했습니다.' });
+        }
       }
     };
 
@@ -245,9 +326,13 @@ const useSocket = ({ roomCode }: useSocketProps) => {
     return () => {
       if (clientRef.current) {
         clientRef.current.deactivate();
+        clientRef.current = null;
+      }
+      if (sessionStorage.getItem('roomPassword')) {
+        sessionStorage.removeItem('roomPassword');
       }
     };
-  }, [roomCode, queryClient]);
+  }, [roomCode, queryClient, isPasswordRoom, password]);
 
   const sendChat = (content: string) => {
     if (!clientRef.current) return;
@@ -286,9 +371,18 @@ const useSocket = ({ roomCode }: useSocketProps) => {
   };
 
   const isLoading = state.loading;
-  const isError = state.error;
+  const isPasswordLoading = state.passwordLoading;
+  const isGeneralError = state.generalError;
+  const isPasswordError = state.passwordError;
 
-  return { sendChat, sendVideoPlayerState, isLoading, isError };
+  return {
+    sendChat,
+    sendVideoPlayerState,
+    isLoading,
+    isPasswordLoading,
+    isGeneralError,
+    isPasswordError,
+  };
 };
 
 export default useSocket;

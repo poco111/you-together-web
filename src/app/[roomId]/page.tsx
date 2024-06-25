@@ -1,9 +1,11 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import CryptoJS from 'crypto-js';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
+import InputPasswordModal from '@/components/input-password-modal-form';
 import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-get-participants';
@@ -18,7 +20,7 @@ import {
 } from '@nextui-org/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-get-user-info';
 import useChangeRole from '@/hooks/use-change-role';
@@ -39,8 +41,34 @@ import { hasVideoEditPermission } from '@/service/user-permissions';
 
 const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const roomCode = roomId;
-  const { sendChat, sendVideoPlayerState, isLoading, isError } = useSocket({
+  const [password, setPassword] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const passwordExist = JSON.parse(
+    searchParams.get('passwordExist') ?? 'false'
+  );
+
+  useEffect(() => {
+    const savedPassword = sessionStorage.getItem('roomPassword');
+    if (savedPassword) {
+      const decryptedPassword = CryptoJS.AES.decrypt(
+        savedPassword,
+        `${process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY}`
+      ).toString(CryptoJS.enc.Utf8);
+      setPassword(decryptedPassword);
+    }
+  }, []);
+
+  const {
+    sendChat,
+    sendVideoPlayerState,
+    isLoading,
+    isPasswordLoading,
+    isGeneralError,
+    isPasswordError,
+  } = useSocket({
     roomCode,
+    passwordExist,
+    password,
   });
   const { data: chats = [] } = useGetChatMessage({ roomCode });
   const { data: participants = [] } = useGetParticipants({ roomCode });
@@ -63,7 +91,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const queryClient = useQueryClient();
-
   const { register, handleSubmit, watch, reset } = useForm<TYoutubeUrlPayload>({
     mode: 'onChange',
   });
@@ -267,7 +294,17 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
       />
     );
 
-  if (isError) {
+  if (isPasswordLoading || isPasswordError) {
+    return (
+      <InputPasswordModal
+        isOpen={true}
+        isPasswordError={isPasswordError}
+        setPassword={setPassword}
+      />
+    );
+  }
+
+  if (isGeneralError) {
     router.push(paths.home());
   }
   // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
@@ -354,7 +391,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
               disabled={
                 !userHasVideoEditPermission || playlistInfo?.length === 0
               }
-              onClick={() => handleNextVideoButton()}
+              onPress={() => handleNextVideoButton()}
             >
               <Icon
                 name="playNextVideo"

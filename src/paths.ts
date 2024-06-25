@@ -2,8 +2,8 @@ const paths = {
   home() {
     return '/';
   },
-  room(roomCode: string) {
-    return `/${roomCode}`;
+  room(roomCode: string, passwordExist: boolean) {
+    return `/${roomCode}?passwordExist=${passwordExist}`;
   },
 };
 

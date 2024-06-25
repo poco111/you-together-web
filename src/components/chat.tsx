@@ -1,4 +1,4 @@
-import { ScrollShadow, Textarea } from '@nextui-org/react';
+import { ScrollShadow, Textarea, Button } from '@nextui-org/react';
 import { getNicknameFromUserId } from '@/service/user-action';
 import { Dispatch, SetStateAction } from 'react';
 import Icon from '@/assets/icon';
@@ -73,7 +73,7 @@ const Chat = ({
         })}
       </ScrollShadow>
 
-      <div className="flex gap-3 h-24">
+      <div className="flex gap-2 h-24">
         <Textarea
           placeholder={`${
             userHasChatPermission ? '채팅을 입력하세요' : '채팅 권한이 없습니다'
@@ -84,13 +84,13 @@ const Chat = ({
           className="overflow-auto w-full"
           disabled={!userHasChatPermission}
         />
-        <button
-          className="pb-5"
-          onClick={() => handleSendChat(chatValue)}
+        <Button
+          className="flex items-center justify-center min-w-unit-10 h-20 bg-inherit"
+          onPress={() => handleSendChat(chatValue)}
           disabled={!userHasChatPermission}
         >
           <Icon name="sendMessage" className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
     </div>
   );
