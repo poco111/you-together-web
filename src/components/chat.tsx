@@ -1,8 +1,8 @@
 import { ScrollShadow, Textarea, Button } from '@nextui-org/react';
-import { getNicknameFromUserId } from '@/service/user-action';
+import { getNicknameFromUserId } from '@/service/user';
 import { Dispatch, SetStateAction } from 'react';
 import Icon from '@/assets/icon';
-import { hasChatPermission } from '@/service/user-permissions';
+import { hasChatPermission } from '@/service/user';
 
 interface IChatProps {
   chats: TChatMessage[];

@@ -11,7 +11,7 @@ import {
   DropdownItem,
   Button,
 } from '@nextui-org/react';
-import { getDropdownContents } from '@/service/user-action';
+import { getDropdownContents } from '@/service/user';
 import Icon from '@/assets/icon';
 
 interface IParticipantsListProps {

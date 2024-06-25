@@ -37,7 +37,7 @@ import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
-import { hasVideoEditPermission } from '@/service/user-permissions';
+import { hasVideoEditPermission } from '@/service/user';
 
 const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const roomCode = roomId;
@@ -415,6 +415,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
               <div className="flex items-center gap-2 w-1/3 justify-end pl-1">
                 <ChangeRoomTitleModal
                   currentRoomTitle={roomDetailInfo?.roomTitle}
+                  userInfo={userInfo}
                 />
                 <Icon
                   name="peopleGroup"

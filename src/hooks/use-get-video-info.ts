@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getVideoInfo } from '@/api/get-video-info';
-import { extractYouTubeVideoId } from '@/service/user-action';
+import { extractYouTubeVideoId } from '@/service/video';
 
 interface UseGetVideoInfoProps {
   youtubeUrl: string;
