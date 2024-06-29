@@ -165,9 +165,9 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
       <div className="flex w-full h-auto justify-center items-start px-40 gap-4">
         <VideoPlayer
           roomCode={roomCode}
-          userInfo={userInfo}
           sendVideoPlayerState={sendVideoPlayerState}
           playlistInfo={playlistInfo}
+          userHasVideoEditPermission={userHasVideoEditPermission}
         />
         <div className="flex flex-col w-80 gap-2">
           <div className="w-full min-h-10 p-3 border-small rounded-small border-default-200 dark:border-default-100">

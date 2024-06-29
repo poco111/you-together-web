@@ -12,7 +12,7 @@ import Icon from '@/assets/icon';
 
 interface IVideoProps {
   roomCode: string;
-  userInfo: TUserInfo | undefined;
+  userHasVideoEditPermission: boolean | undefined;
   sendVideoPlayerState: ({
     roomCode,
     playerState,
@@ -34,9 +34,9 @@ interface IVideoProps {
 
 const VideoPlayer = ({
   roomCode,
-  userInfo,
   sendVideoPlayerState,
   playlistInfo,
+  userHasVideoEditPermission,
 }: IVideoProps) => {
   const { data: videoTitleInfo } = useGetVideoTitleInfo({ roomCode });
   const { data: videoSyncInfo } = useGetVideoSyncInfo({ roomCode });
@@ -49,9 +49,6 @@ const VideoPlayer = ({
   const { mutate: playNextVideo } = usePlayNextVideo();
 
   const queryClient = useQueryClient();
-
-  const userHasVideoEditPermission =
-    userInfo && hasVideoEditPermission(userInfo);
 
   useEffect(() => {
     const curPlayerState = playerRef.current?.getPlayerState();
