@@ -1,10 +1,7 @@
 'use client';
 
 import useCreateRoom from '@/hooks/use-create-room';
-import {
-  TRoomCreationPayload,
-  roomCreationSchema,
-} from '@/schemas/room-creation';
+import { TRoomCreationPayload, roomCreationSchema } from '@/schemas/rooms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Modal,

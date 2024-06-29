@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { TRoomTitleChangePayload } from '@/schemas/room-creation';
+import { TRoomTitleChangePayload } from '@/schemas/rooms';
 import { changeRoomTitle } from '@/api/change-room-title';
 
 const useChangeRoomTitle = () => {

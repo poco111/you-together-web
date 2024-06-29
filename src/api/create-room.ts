@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { TRoomCreationPayload } from '@/schemas/room-creation';
+import { TRoomCreationPayload } from '@/schemas/rooms';
 
 export const createRoom = async ({
   title,

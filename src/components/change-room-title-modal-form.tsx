@@ -3,7 +3,7 @@
 import {
   TRoomTitleChangePayload,
   roomTitleChangeSchema,
-} from '@/schemas/room-creation';
+} from '@/schemas/rooms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Modal,

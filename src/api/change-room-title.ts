@@ -1,4 +1,4 @@
-import { TRoomTitleChangePayload } from '@/schemas/room-creation';
+import { TRoomTitleChangePayload } from '@/schemas/rooms';
 import axios, { AxiosResponse } from 'axios';
 
 export const changeRoomTitle = async ({
