@@ -1,9 +1,14 @@
 import axios from 'axios';
 
-export const getRooms = async (page: number): Promise<TRoomsListData> => {
+export const getRooms = async (
+  page: number,
+  keyword?: string
+): Promise<TRoomsListData> => {
   try {
     const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/rooms?page=${page}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/rooms?page=${page}${
+        keyword ? `&keyword=${encodeURIComponent(keyword)}` : ''
+      }`,
       {
         withCredentials: true,
       }
