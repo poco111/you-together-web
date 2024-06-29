@@ -1,17 +1,14 @@
 import { ScrollShadow, Textarea, Button } from '@nextui-org/react';
 import { getNicknameFromUserId } from '@/service/user';
-import { Dispatch, SetStateAction } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import Icon from '@/assets/icon';
 import { hasChatPermission } from '@/service/user';
 
 interface IChatProps {
   chats: TChatMessage[];
-  chatValue: string;
   participantsList: Array<TUserInfo>;
   userInfo: TUserInfo | undefined;
-  setChatValue: Dispatch<SetStateAction<string>>;
-  handleSendChat: (chat: string) => void;
-  handleChatKeyDown: (e: React.KeyboardEvent) => void;
+  sendChat: (chat: string) => void;
 }
 
 const formatChatTime = (time: string): string => {
@@ -26,16 +23,24 @@ const formatChatTime = (time: string): string => {
   return `${ampm} ${hours}:${formattedMinutes}`;
 };
 
-const Chat = ({
-  chats,
-  chatValue,
-  participantsList,
-  userInfo,
-  setChatValue,
-  handleSendChat,
-  handleChatKeyDown,
-}: IChatProps) => {
+const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
+  const [chatValue, setChatValue] = useState('');
   const userHasChatPermission = userInfo && hasChatPermission(userInfo);
+
+  const handleSendChat = (chat: string) => {
+    if (!chat) return;
+
+    sendChat(chat);
+    setChatValue('');
+  };
+
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.nativeEvent.isComposing) return;
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendChat(chatValue);
+    }
+  };
 
   return (
     <div>

@@ -2,7 +2,6 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoJS from 'crypto-js';
-import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
 import InputPasswordModal from '@/components/input-password-modal-form';
@@ -19,7 +18,7 @@ import {
   Input,
 } from '@nextui-org/react';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-get-user-info';
@@ -27,9 +26,6 @@ import useChangeRole from '@/hooks/use-change-role';
 import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
 import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
-import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
-import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
-import usePlayNextVideo from '@/hooks/use-play-next-video';
 
 import NavBar from '@/components/navbar';
 import Icon from '@/assets/icon';
@@ -79,7 +75,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const { mutate: changeUserRole } = useChangeRole();
   const { mutate: addPlaylist } = useAddPlaylist();
   const { mutate: deletePlaylist } = useDeletePlaylist();
-  const [chatValue, setChatValue] = useState('');
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
 
@@ -161,21 +156,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
     if (payload.youtubeUrl === '') return;
     getVideoInfo();
     reset();
-  };
-
-  const handleSendChat = (chat: string) => {
-    if (!chat) return;
-
-    sendChat(chat);
-    setChatValue('');
-  };
-
-  const handleChatKeyDown = (e: React.KeyboardEvent) => {
-    if (e.nativeEvent.isComposing) return;
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendChat(chatValue);
-    }
   };
 
   return (
@@ -324,12 +304,9 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
           <Chat
             chats={chats}
-            chatValue={chatValue}
-            setChatValue={setChatValue}
             userInfo={userInfo}
             participantsList={participantsList}
-            handleSendChat={handleSendChat}
-            handleChatKeyDown={handleChatKeyDown}
+            sendChat={sendChat}
           />
 
           <ParticipantsList
