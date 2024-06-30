@@ -4,7 +4,6 @@ import { Button } from '@nextui-org/react';
 import { useQueryClient } from '@tanstack/react-query';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { useState, useRef, useEffect } from 'react';
-import { hasVideoEditPermission } from '@/service/user';
 import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
 import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
 import usePlayNextVideo from '@/hooks/use-play-next-video';
