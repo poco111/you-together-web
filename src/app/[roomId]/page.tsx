@@ -1,6 +1,5 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import CryptoJS from 'crypto-js';
 import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import ChangeRoomTitleModal from '@/components/change-room-title-modal-form';
@@ -8,32 +7,23 @@ import InputPasswordModal from '@/components/input-password-modal-form';
 import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-get-participants';
-import {
-  CircularProgress,
-  Button,
-  Image,
-  Listbox,
-  ListboxItem,
-  useDisclosure,
-  Input,
-} from '@nextui-org/react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { CircularProgress, useDisclosure } from '@nextui-org/react';
+
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import paths from '@/paths';
 import useGetUserInfo from '@/hooks/use-get-user-info';
 import useChangeRole from '@/hooks/use-change-role';
-import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useGetPlaylist from '@/hooks/use-get-playlist';
 import useGetRoomDetailInfo from '@/hooks/use-get-room-detail-info';
 
 import NavBar from '@/components/navbar';
 import Icon from '@/assets/icon';
-import useAddPlaylist from '@/hooks/use-add-playlist';
-import useDeletePlaylist from '@/hooks/use-delete-playlist';
+
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
 import VideoPlayer from '@/components/video-player';
+import Playlist from '@/components/playlist';
 import { hasVideoEditPermission } from '@/service/user';
 
 const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
@@ -73,27 +63,11 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const { data: playlist = [] } = useGetPlaylist({ roomCode });
   const { data: roomDetailInfo } = useGetRoomDetailInfo({ roomCode });
   const { mutate: changeUserRole } = useChangeRole();
-  const { mutate: addPlaylist } = useAddPlaylist();
-  const { mutate: deletePlaylist } = useDeletePlaylist();
   const participantsList = participants?.[0]?.participants;
   const playlistInfo = playlist?.[0]?.playlist;
 
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, watch, reset } = useForm<TYoutubeUrlPayload>({
-    mode: 'onChange',
-  });
-
-  const youtubeUrl = watch('youtubeUrl');
   const userHasVideoEditPermission =
     userInfo && hasVideoEditPermission(userInfo);
-
-  const {
-    data: videoInfo,
-    isSuccess: isSuccessOfGetVideoInfo,
-    refetch: getVideoInfo,
-  } = useGetVideoInfo({
-    youtubeUrl: youtubeUrl,
-  });
 
   const router = useRouter();
 
@@ -103,25 +77,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
     onOpenChange: onChangeNicknameModalOpenChange,
     onClose: onChangeNicknameModalClose,
   } = useDisclosure();
-
-  useEffect(() => {
-    if (isSuccessOfGetVideoInfo && videoInfo) {
-      addPlaylist(
-        {
-          videoId: videoInfo.videoId,
-          videoTitle: videoInfo.videoTitle,
-          channelTitle: videoInfo.channelTitle,
-          thumbnail: videoInfo.thumbnail,
-          duration: videoInfo.duration,
-        },
-        {
-          onSuccess: () => {
-            queryClient.removeQueries({ queryKey: ['videoInfo'] });
-          },
-        }
-      );
-    }
-  }, [roomCode, isSuccessOfGetVideoInfo, videoInfo, addPlaylist, queryClient]);
 
   if (isLoading)
     return (
@@ -145,18 +100,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
     router.push(paths.home());
   }
   // TODO: 에러 모달 처리 및 확인 버튼시 라우팅 처리
-
-  const handlePlaylistDelete = (videoNumber: number) => {
-    deletePlaylist({
-      videoNumber: videoNumber,
-    });
-  };
-
-  const handlePlaylistAdd: SubmitHandler<TYoutubeUrlPayload> = (payload) => {
-    if (payload.youtubeUrl === '') return;
-    getVideoInfo();
-    reset();
-  };
 
   return (
     <>
@@ -210,97 +153,10 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
             </div>
           </div>
 
-          <div className="w-full min-h-14 max-h-44 overflow-auto border-small rounded-small border-default-200 dark:border-default-100 gap-1">
-            <form
-              className="flex items-center mb-2 ml-2"
-              onSubmit={handleSubmit(handlePlaylistAdd)}
-            >
-              <Input
-                defaultValue=""
-                placeholder={`${
-                  userHasVideoEditPermission
-                    ? 'YouTube 영상의 URL을 입력하세요'
-                    : '영상을 추가할 수 있는 권한이 없습니다'
-                }`}
-                className="h-7 text-xs"
-                disabled={!userHasVideoEditPermission}
-                {...register('youtubeUrl')}
-              />
-              <Button
-                size="sm"
-                variant="light"
-                type="submit"
-                disabled={!userHasVideoEditPermission}
-                className="mt-2"
-              >
-                <Icon name="plus" className="size-4" />
-              </Button>
-            </form>
-            <Listbox aria-label="Playlist">
-              {playlistInfo?.length === 0 ? (
-                <ListboxItem
-                  key="empty"
-                  textValue="empty"
-                  className="flex cursor-default"
-                >
-                  <div className="flex justify-center items-center w-full h-full">
-                    <span className="text-default-400">
-                      재생목록이 비었습니다
-                    </span>
-                  </div>
-                </ListboxItem>
-              ) : (
-                playlistInfo?.map((item) => (
-                  <ListboxItem
-                    key={item.videoNumber}
-                    textValue="Video"
-                    className="flex cursor-default"
-                  >
-                    <div className="flex gap-4 items-center">
-                      <Icon
-                        name="gripLines"
-                        className={`${
-                          userHasVideoEditPermission
-                            ? 'cursor-pointer'
-                            : 'invisible'
-                        }`}
-                      />
-                      <Image
-                        className="size-6"
-                        alt="썸네일"
-                        src={item.thumbnail}
-                      />
-                      <div className="flex justify-between items-center gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-bold text-xs whitespace-normal w-40">
-                            {item.videoTitle}
-                          </span>
-                          <span className="text-tiny text-default-400 truncate">
-                            {item.channelTitle}
-                          </span>
-                        </div>
-                        <div className="flex gap-2 pl-7">
-                          <button
-                            disabled={!userHasVideoEditPermission}
-                            onClick={() =>
-                              handlePlaylistDelete(item.videoNumber)
-                            }
-                          >
-                            <Icon
-                              name="trashCan"
-                              className={`${
-                                !userHasVideoEditPermission ? 'invisible' : null
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </ListboxItem>
-                ))
-              )}
-            </Listbox>
-          </div>
+          <Playlist
+            playlistInfo={playlistInfo}
+            userHasVideoEditPermission={userHasVideoEditPermission}
+          />
 
           <Chat
             chats={chats}
