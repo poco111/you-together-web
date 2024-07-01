@@ -7,6 +7,7 @@ interface useGetUserInfoProps {
 const useGetUserInfo = ({ roomCode }: useGetUserInfoProps) => {
   return useQuery<TUserInfo>({
     queryKey: ['userInfo', roomCode],
+    enabled: false,
   });
 };
 export default useGetUserInfo;
