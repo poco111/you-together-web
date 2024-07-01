@@ -4,10 +4,9 @@ import { Button } from '@nextui-org/react';
 import { useQueryClient } from '@tanstack/react-query';
 import YouTube, { YouTubeEvent, YouTubePlayer } from 'react-youtube';
 import { useState, useRef, useEffect } from 'react';
-import useGetVideoTitleInfo from '@/hooks/use-get-video-title-info';
-import useGetVideoSyncInfo from '@/hooks/use-get-video-sync-info';
 import usePlayNextVideo from '@/hooks/use-play-next-video';
 import Icon from '@/assets/icon';
+import { errorHandler } from '@/lib/query-client';
 
 interface IVideoProps {
   roomCode: string;
@@ -141,7 +140,6 @@ const VideoPlayer = ({
 
     if (playerState[newPlayerState] === videoSyncInfo?.playerState) return;
 
-    // 권한 없는 사용자인 경우 alert 띄우기
     if (
       !userHasVideoEditPermission &&
       playerState[newPlayerState] === 'PLAY' &&
@@ -149,6 +147,7 @@ const VideoPlayer = ({
     ) {
       playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
       playerRef.current?.pauseVideo();
+      errorHandler('비디오 편집 권한이 없습니다.');
       return;
     } else if (
       !userHasVideoEditPermission &&
@@ -157,6 +156,7 @@ const VideoPlayer = ({
     ) {
       playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
       playerRef.current?.playVideo();
+      errorHandler('비디오 편집 권한이 없습니다.');
       return;
     }
 
@@ -182,9 +182,12 @@ const VideoPlayer = ({
 
     if (newPlayerRate === videoSyncInfo?.playerRate) return;
 
-    // 권한 없는 사용자인 경우 alert 띄우기
-    if (!userHasVideoEditPermission) {
+    if (
+      !userHasVideoEditPermission &&
+      newPlayerRate !== videoSyncInfo?.playerRate
+    ) {
       playerRef.current?.setPlaybackRate(videoSyncInfo?.playerRate);
+      errorHandler('비디오 편집 권한이 없습니다.');
       return;
     }
 
@@ -214,7 +217,7 @@ const VideoPlayer = ({
             width: 680,
             height: 480,
             playerVars: {
-              autoplay: 0,
+              autoplay: 1,
               disablekb: 1,
               rel: 0,
             },
