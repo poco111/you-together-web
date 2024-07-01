@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button, Input, Listbox, ListboxItem, Image } from '@nextui-org/react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { SubmitHandler, useForm, Controller } from 'react-hook-form';
 import useGetVideoInfo from '@/hooks/use-get-video-info';
 import useAddPlaylist from '@/hooks/use-add-playlist';
 import useDeletePlaylist from '@/hooks/use-delete-playlist';
@@ -30,15 +30,17 @@ const Playlist = ({
 
   const queryClient = useQueryClient();
 
-  const { register, handleSubmit, setValue, getValues, reset } =
+  const { control, handleSubmit, setValue, reset, watch } =
     useForm<TYoutubeUrlPayload>();
+
+  const youtubeUrl = watch('youtubeUrl');
 
   const {
     data: videoInfo,
     isSuccess: isSuccessOfGetVideoInfo,
     refetch: getVideoInfo,
   } = useGetVideoInfo({
-    youtubeUrl: getValues('youtubeUrl'),
+    youtubeUrl: youtubeUrl,
   });
 
   useEffect(() => {
@@ -66,9 +68,8 @@ const Playlist = ({
     });
   };
 
-  const handlePlaylistAdd: SubmitHandler<TYoutubeUrlPayload> = () => {
-    const youtubeUrl = getValues('youtubeUrl');
-    if (!youtubeUrl) return;
+  const handlePlaylistAdd: SubmitHandler<TYoutubeUrlPayload> = (payload) => {
+    if (!payload.youtubeUrl) return;
     getVideoInfo();
     reset();
   };
@@ -79,19 +80,25 @@ const Playlist = ({
         className="flex items-center mb-2 ml-2"
         onSubmit={handleSubmit(handlePlaylistAdd)}
       >
-        <Input
+        <Controller
+          name="youtubeUrl"
+          control={control}
           defaultValue=""
-          placeholder={`${
-            userHasVideoEditPermission
-              ? 'YouTube 영상의 URL을 입력하세요'
-              : '영상을 추가할 수 있는 권한이 없습니다'
-          }`}
-          onClear={() => {
-            setValue('youtubeUrl', '');
-          }}
-          className="h-7 text-xs"
-          disabled={!userHasVideoEditPermission}
-          {...register('youtubeUrl')}
+          render={({ field }) => (
+            <Input
+              {...field}
+              placeholder={`${
+                userHasVideoEditPermission
+                  ? 'YouTube 영상의 URL을 입력하세요'
+                  : '영상을 추가할 수 있는 권한이 없습니다'
+              }`}
+              onClear={() => {
+                setValue('youtubeUrl', '');
+              }}
+              className="h-7 text-xs"
+              disabled={!userHasVideoEditPermission}
+            />
+          )}
         />
         <Button
           variant="light"

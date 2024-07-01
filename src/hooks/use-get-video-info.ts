@@ -9,14 +9,7 @@ interface UseGetVideoInfoProps {
 const useGetVideoInfo = ({ youtubeUrl }: UseGetVideoInfoProps) => {
   return useQuery({
     queryKey: ['videoInfo'],
-    queryFn: () => {
-      const videoId = extractYouTubeVideoId(youtubeUrl);
-      if (!videoId) {
-        throw new Error('유효하지 않은 YouTube URL입니다.');
-      }
-      return getVideoInfo(videoId);
-    },
-
+    queryFn: () => getVideoInfo(youtubeUrl),
     enabled: false,
   });
 };
