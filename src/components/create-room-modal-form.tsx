@@ -15,6 +15,7 @@ import {
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import paths from '@/paths';
+import CryptoJS from 'crypto-js';
 
 const CreateRoomModal = () => {
   const {
@@ -42,12 +43,16 @@ const CreateRoomModal = () => {
           data: { roomCode },
         },
       }) => {
+        if (payload.password) {
+          const encryptedPassword = CryptoJS.AES.encrypt(
+            payload.password,
+            `${process.env.NEXT_PUBLIC_CRYPTO_SECRET_KEY}`
+          ).toString();
+
+          sessionStorage.setItem('roomPassword', encryptedPassword);
+        }
         onCreateRoomModalClose();
         router.push(paths.room(roomCode, payload.password ? true : false));
-      },
-      onError: () => {
-        onCreateRoomModalClose();
-        // 에러 모달 처리
       },
     });
   };
