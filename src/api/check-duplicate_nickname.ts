@@ -18,6 +18,6 @@ export const checkDuplicateNickname = async ({
 
     return response.data;
   } catch (error) {
-    throw new Error('요청에 실패하였습니다.');
+    throw new Error('데이터를 불러오지 못했습니다.');
   }
 };

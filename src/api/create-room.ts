@@ -24,6 +24,6 @@ export const createRoom = async ({
 
     return response;
   } catch (error) {
-    throw error;
+    throw new Error('방 생성에 실패하였습니다.');
   }
 };

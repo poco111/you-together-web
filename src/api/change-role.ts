@@ -21,7 +21,6 @@ export const changeRole = async ({
 
     return response.data;
   } catch (error) {
-    // API 응답의 오류 메시지 출력하기
-    throw new Error('역할 변경에 실패하였습니다.');
+    throw new Error('유저의 역할 변경에 실패하였습니다.');
   }
 };

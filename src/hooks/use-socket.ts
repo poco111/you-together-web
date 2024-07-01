@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { joinRoom } from '@/api/join-room';
 import { AxiosError } from 'axios';
 import CryptoJS from 'crypto-js';
+import { errorHandler } from '@/lib/query-client';
 
 interface useSocketProps {
   roomCode: string;
@@ -170,127 +171,131 @@ const useSocket = ({
         const stompClient = new Client({
           webSocketFactory: () => socket,
           reconnectDelay: 5000,
-          // debug: (str) => console.log(new Date(), str),
         });
+
+        stompClient.activate();
 
         stompClient.onConnect = () => {
           clientRef.current = stompClient;
+
           stompClient.subscribe(
             `/sub/messages/rooms/${roomCode}`,
             (message) => {
-              const response = JSON.parse(message.body) as TWebSocketMessage;
-              console.log('웹 소켓 응답,', response);
-              switch (response.messageType) {
-                case 'CHAT':
-                  queryClient.setQueryData<TWebSocketMessage[]>(
-                    ['chat', roomCode],
-                    (old) => {
-                      const newChats = [...(old ?? []), response];
-                      return newChats.length > MAX_CHAT_LENGTH
-                        ? newChats.slice(1)
-                        : newChats;
-                    }
-                  );
-                  break;
-                case 'CHAT_HISTORIES':
-                  queryClient.setQueryData<TWebSocketMessage[]>(
-                    ['chat', roomCode],
-                    () => [
-                      ...response.chatHistories.map((chat) => ({
-                        ...chat,
-                        roomCode,
-                      })),
-                    ]
-                  );
-                  break;
-                case 'ALARM':
-                  queryClient.setQueryData<TWebSocketMessage[]>(
-                    ['chat', roomCode],
-                    (old) => {
-                      const newChats = [...(old ?? []), response];
-                      return newChats.length > MAX_CHAT_LENGTH
-                        ? newChats.slice(1)
-                        : newChats;
-                    }
-                  );
-                  break;
-                case 'PARTICIPANTS':
-                  queryClient.setQueryData<TWebSocketMessage[]>(
-                    ['participants', roomCode],
-                    () => {
-                      const userInfo = queryClient.getQueryData<TUserInfo>([
-                        'userInfo',
-                        roomCode,
-                      ]);
-                      response.participants.forEach((participant) => {
-                        if (
-                          participant.userId === userInfo?.userId &&
-                          participant.role !== userInfo?.role
-                        ) {
-                          const newUserInfo = participant;
-                          queryClient.setQueryData<TUserInfo>(
-                            ['userInfo', roomCode],
-                            newUserInfo
-                          );
-                        }
-                      });
-                      return [response];
-                    }
-                  );
-                  break;
-                case 'PLAYLIST':
-                  queryClient.setQueryData<TWebSocketMessage[]>(
-                    ['playlist', roomCode],
-                    [response]
-                  );
-                  break;
-                case 'VIDEO_SYNC_INFO':
-                  queryClient.setQueryData<TVideoSyncInfo>(
-                    ['videoSyncInfo', roomCode],
-                    () => {
-                      const videoSyncInfo = {
-                        videoId: response.videoId,
-                        playerState: response.playerState,
-                        playerCurrentTime: response.playerCurrentTime,
-                        playerRate: response.playerRate,
-                        videoNumber: response.videoNumber,
-                      };
-                      return videoSyncInfo;
-                    }
-                  );
-                  break;
-                case 'START_VIDEO_INFO':
-                  queryClient.setQueryData<TVideoTitleInfo>(
-                    ['videoTitleInfo', roomCode],
-                    () => {
-                      const videoTitleInfo = {
-                        videoTitle: response.videoTitle,
-                        channelTitle: response.channelTitle,
-                      };
-                      return videoTitleInfo;
-                    }
-                  );
-                  break;
-                case 'ROOM_TITLE':
-                  queryClient.setQueryData<TRoomDetailInfo>(
-                    ['roomDetailInfo', roomCode],
-                    (old) => {
-                      if (old) {
-                        const roomDetailInfo = {
-                          ...old,
-                          roomTitle: response.updatedTitle,
-                        };
-                        return roomDetailInfo;
+              try {
+                const response = JSON.parse(message.body) as TWebSocketMessage;
+                switch (response.messageType) {
+                  case 'CHAT':
+                    queryClient.setQueryData<TWebSocketMessage[]>(
+                      ['chat', roomCode],
+                      (old) => {
+                        const newChats = [...(old ?? []), response];
+                        return newChats.length > MAX_CHAT_LENGTH
+                          ? newChats.slice(1)
+                          : newChats;
                       }
-                    }
-                  );
+                    );
+                    break;
+                  case 'CHAT_HISTORIES':
+                    queryClient.setQueryData<TWebSocketMessage[]>(
+                      ['chat', roomCode],
+                      () => [
+                        ...response.chatHistories.map((chat) => ({
+                          ...chat,
+                          roomCode,
+                        })),
+                      ]
+                    );
+                    break;
+                  case 'ALARM':
+                    queryClient.setQueryData<TWebSocketMessage[]>(
+                      ['chat', roomCode],
+                      (old) => {
+                        const newChats = [...(old ?? []), response];
+                        return newChats.length > MAX_CHAT_LENGTH
+                          ? newChats.slice(1)
+                          : newChats;
+                      }
+                    );
+                    break;
+                  case 'PARTICIPANTS':
+                    queryClient.setQueryData<TWebSocketMessage[]>(
+                      ['participants', roomCode],
+                      () => {
+                        const userInfo = queryClient.getQueryData<TUserInfo>([
+                          'userInfo',
+                          roomCode,
+                        ]);
+                        response.participants.forEach((participant) => {
+                          if (
+                            participant.userId === userInfo?.userId &&
+                            participant.role !== userInfo?.role
+                          ) {
+                            const newUserInfo = participant;
+                            queryClient.setQueryData<TUserInfo>(
+                              ['userInfo', roomCode],
+                              newUserInfo
+                            );
+                          }
+                        });
+                        return [response];
+                      }
+                    );
+                    break;
+                  case 'PLAYLIST':
+                    queryClient.setQueryData<TWebSocketMessage[]>(
+                      ['playlist', roomCode],
+                      [response]
+                    );
+                    break;
+                  case 'VIDEO_SYNC_INFO':
+                    queryClient.setQueryData<TVideoSyncInfo>(
+                      ['videoSyncInfo', roomCode],
+                      () => {
+                        const videoSyncInfo = {
+                          videoId: response.videoId,
+                          playerState: response.playerState,
+                          playerCurrentTime: response.playerCurrentTime,
+                          playerRate: response.playerRate,
+                          videoNumber: response.videoNumber,
+                        };
+                        return videoSyncInfo;
+                      }
+                    );
+                    break;
+                  case 'START_VIDEO_INFO':
+                    queryClient.setQueryData<TVideoTitleInfo>(
+                      ['videoTitleInfo', roomCode],
+                      () => {
+                        const videoTitleInfo = {
+                          videoTitle: response.videoTitle,
+                          channelTitle: response.channelTitle,
+                        };
+                        return videoTitleInfo;
+                      }
+                    );
+                    break;
+                  case 'ROOM_TITLE':
+                    queryClient.setQueryData<TRoomDetailInfo>(
+                      ['roomDetailInfo', roomCode],
+                      (old) => {
+                        if (old) {
+                          const roomDetailInfo = {
+                            ...old,
+                            roomTitle: response.updatedTitle,
+                          };
+                          return roomDetailInfo;
+                        }
+                      }
+                    );
+                    break;
+                }
+                dispatch({ type: 'SUCCESS' });
+              } catch (error) {
+                errorHandler('데이터를 불러오는데 실패하였습니다.');
               }
             }
           );
-
-          dispatch({ type: 'SUCCESS' });
         };
-        stompClient.activate();
       } catch (error) {
         hasJoinedRef.current = false;
         if (error instanceof AxiosError) {
