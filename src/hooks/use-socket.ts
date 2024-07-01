@@ -378,6 +378,7 @@ const useSocket = ({
   const isLoading = state.loading;
   const isPasswordLoading = state.passwordLoading;
   const isGeneralError = state.generalError;
+  const generalErrorMessage = state.errorMessage;
   const isPasswordError = state.passwordError;
 
   return {
@@ -386,6 +387,7 @@ const useSocket = ({
     isLoading,
     isPasswordLoading,
     isGeneralError,
+    generalErrorMessage,
     isPasswordError,
   };
 };

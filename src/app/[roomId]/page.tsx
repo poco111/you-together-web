@@ -24,6 +24,7 @@ import VideoPlayer from '@/components/video-player';
 import Playlist from '@/components/playlist';
 import RoomInfo from '@/components/room-info';
 import { hasVideoEditPermission } from '@/service/user';
+import { errorHandler } from '@/lib/query-client';
 
 const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   const roomCode = roomId;
@@ -50,6 +51,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
     isLoading: isSocketLoading,
     isPasswordLoading,
     isGeneralError,
+    generalErrorMessage,
     isPasswordError,
   } = useSocket({
     roomCode,
@@ -121,6 +123,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
   }
 
   if (isGeneralError) {
+    errorHandler(generalErrorMessage);
     router.push(paths.home());
   }
 
