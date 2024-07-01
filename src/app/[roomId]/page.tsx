@@ -1,12 +1,11 @@
 'use client';
 
 import CryptoJS from 'crypto-js';
-import ChangeNicknameModal from '@/components/change-nickname-modal-form';
 import InputPasswordModal from '@/components/input-password-modal-form';
 import useGetChatMessage from '@/hooks/use-get-chat-message';
 import useSocket from '@/hooks/use-socket';
 import useGetParticipants from '@/hooks/use-get-participants';
-import { CircularProgress, useDisclosure } from '@nextui-org/react';
+import { CircularProgress } from '@nextui-org/react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import paths from '@/paths';
@@ -86,13 +85,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
   const router = useRouter();
 
-  const {
-    isOpen: isChangeNicknameModalOpen,
-    onOpen: onChangeNicknameModalOpen,
-    onOpenChange: onChangeNicknameModalOpenChange,
-    onClose: onChangeNicknameModalClose,
-  } = useDisclosure();
-
   const isLoading =
     isSocketLoading ||
     isChatLoading ||
@@ -162,18 +154,9 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
           <ParticipantsList
             participantsList={participantsList}
             userInfo={userInfo}
-            onChangeNicknameModalOpen={onChangeNicknameModalOpen}
             changeUserRole={changeUserRole}
+            roomCode={roomCode}
           />
-
-          {!!isChangeNicknameModalOpen && (
-            <ChangeNicknameModal
-              isOpen={isChangeNicknameModalOpen}
-              onOpenChange={onChangeNicknameModalOpenChange}
-              onClose={onChangeNicknameModalClose}
-              roomCode={roomCode}
-            />
-          )}
         </div>
       </div>
     </>
