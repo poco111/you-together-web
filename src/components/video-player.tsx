@@ -29,6 +29,8 @@ interface IVideoProps {
     thumbnail: string;
     channelTitle: string;
   }>;
+  videoTitleInfo: TVideoTitleInfo | undefined;
+  videoSyncInfo: TVideoSyncInfo | undefined;
 }
 
 const VideoPlayer = ({
@@ -36,10 +38,9 @@ const VideoPlayer = ({
   sendVideoPlayerState,
   playlistInfo,
   userHasVideoEditPermission,
+  videoSyncInfo,
+  videoTitleInfo,
 }: IVideoProps) => {
-  const { data: videoTitleInfo } = useGetVideoTitleInfo({ roomCode });
-  const { data: videoSyncInfo } = useGetVideoSyncInfo({ roomCode });
-
   const isFirstVideoPlayRef = useRef<boolean>(false);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
