@@ -34,14 +34,14 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const prevLastChatIdRef = useRef<number | null>(null);
 
-  const initialScrollToBottom = () => {
+  const instantScrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
   };
 
-  const scrollToBottom = () => {
+  const smoothScrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
         top: chatContainerRef.current.scrollHeight,
@@ -49,9 +49,10 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
       });
     }
   };
+
   useEffect(() => {
     if (!prevLastChatIdRef.current) {
-      initialScrollToBottom();
+      instantScrollToBottom();
       prevLastChatIdRef.current = chats[chats.length - 1]?.chatId;
     }
 
@@ -65,18 +66,24 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
         !isAtBottom &&
         prevLastChatIdRef.current !== chats[chats.length - 1]?.chatId
       ) {
+        console.log(2);
         setNewMessageCount(
           chats[chats.length - 1]?.chatId - prevLastChatIdRef.current!
         );
       }
+
+      if (isAtBottom || !showScrollToBottomButton) {
+        smoothScrollToBottom();
+      }
     }
-  }, [chats]);
+  }, [chats, showScrollToBottomButton]);
 
   const handleSendChat = (chat: string) => {
     if (!chat) return;
 
     sendChat(chat);
     setChatValue('');
+    instantScrollToBottom();
   };
 
   const handleChatKeyDown = (e: React.KeyboardEvent) => {
@@ -145,7 +152,7 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
 
       {showScrollToBottomButton && (
         <Button
-          onPress={scrollToBottom}
+          onPress={smoothScrollToBottom}
           className="absolute bottom-28 right-28 w-6 h-6"
         >
           <Icon name="arrowDown" />
