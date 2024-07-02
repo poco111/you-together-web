@@ -1,6 +1,8 @@
+'use client';
+
 import { ScrollShadow, Textarea, Button } from '@nextui-org/react';
 import { getNicknameFromUserId } from '@/service/user';
-import { useState, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Icon from '@/assets/icon';
 import { hasChatPermission } from '@/service/user';
 
@@ -25,7 +27,34 @@ const formatChatTime = (time: string): string => {
 
 const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
   const [chatValue, setChatValue] = useState('');
+  const [showScrollToBottomButton, setShowScrollToBottomButton] =
+    useState(false);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const userHasChatPermission = userInfo && hasChatPermission(userInfo);
+  const prevChatsRef = useRef<TChatMessage[]>([]);
+
+  const initialScrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  };
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+      setShowScrollToBottomButton(false);
+    }
+  };
+
+  useEffect(() => {
+    if (prevChatsRef.current.length === 0) {
+      initialScrollToBottom();
+    }
+    prevChatsRef.current = chats;
+  }, [chats]);
 
   const handleSendChat = (chat: string) => {
     if (!chat) return;
@@ -42,9 +71,24 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
     }
   };
 
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const isAtBottom =
+        chatContainerRef.current.scrollHeight -
+          chatContainerRef.current.scrollTop <=
+        chatContainerRef.current.clientHeight + 100;
+      setShowScrollToBottomButton(!isAtBottom);
+    }
+  };
+
   return (
-    <div>
-      <ScrollShadow hideScrollBar className="w-full h-96 mb-3">
+    <div className="relative">
+      <ScrollShadow
+        hideScrollBar
+        className="w-full h-96 mb-3 overflow-y-auto"
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+      >
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
             <div
@@ -77,6 +121,15 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
           );
         })}
       </ScrollShadow>
+
+      {showScrollToBottomButton && (
+        <Button
+          onPress={scrollToBottom}
+          className="absolute bottom-28 right-28 w-6 h-6"
+        >
+          <Icon name="arrowDown" />
+        </Button>
+      )}
 
       <div className="flex gap-2 h-24">
         <Textarea
