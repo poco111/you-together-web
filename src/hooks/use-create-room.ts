@@ -1,5 +1,5 @@
 import { createRoom } from '@/api/create-room';
-import { TRoomCreationPayload } from '@/schemas/room-creation';
+import { TRoomCreationPayload } from '@/schemas/rooms';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const useCreateRoom = () => {

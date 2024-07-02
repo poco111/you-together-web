@@ -7,6 +7,7 @@ interface useChatMessageProps {
 const useGetChatMessage = ({ roomCode }: useChatMessageProps) => {
   return useQuery<TChatMessage[]>({
     queryKey: ['chat', roomCode],
+    enabled: false,
   });
 };
 export default useGetChatMessage;

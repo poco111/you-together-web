@@ -49,10 +49,23 @@ export const getNicknameFromUserId = (
     ?.nickname;
 };
 
-export const extractYouTubeVideoId = (url: string) => {
-  const regex =
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const matches = url.match(regex);
+export const hasVideoEditPermission = (userInfo: TUserInfo) => {
+  return (
+    userInfo?.role === 'HOST' ||
+    userInfo?.role === 'MANAGER' ||
+    userInfo?.role === 'EDITOR'
+  );
+};
 
-  return matches ? matches[1] : null;
+export const hasChatPermission = (userInfo: TUserInfo) => {
+  return (
+    userInfo.role === 'HOST' ||
+    userInfo.role === 'MANAGER' ||
+    userInfo.role === 'EDITOR' ||
+    userInfo.role === 'GUEST'
+  );
+};
+
+export const hasRoomTitleEditPermission = (userInfo: TUserInfo) => {
+  return userInfo.role === 'HOST';
 };

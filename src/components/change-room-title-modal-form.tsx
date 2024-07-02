@@ -3,7 +3,7 @@
 import {
   TRoomTitleChangePayload,
   roomTitleChangeSchema,
-} from '@/schemas/room-creation';
+} from '@/schemas/rooms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Modal,
@@ -17,11 +17,14 @@ import {
 import { SubmitHandler, useForm } from 'react-hook-form';
 import Icon from '@/assets/icon';
 import useChangeRoomTitle from '@/hooks/use-change-room-title';
+import { hasRoomTitleEditPermission } from '@/service/user';
 
 const ChangeRoomTitleModal = ({
   currentRoomTitle,
+  userInfo,
 }: {
   currentRoomTitle: string | undefined;
+  userInfo: TUserInfo | undefined;
 }) => {
   const {
     isOpen: isChangeRoomTileModalOpen,
@@ -63,7 +66,9 @@ const ChangeRoomTitleModal = ({
     <>
       <Icon
         name="changeCircle"
-        className="cursor-pointer size-5"
+        className={`${
+          userInfo && hasRoomTitleEditPermission(userInfo) ? '' : 'hidden'
+        } cursor-pointer size-5`}
         onClick={onChangeRoomTitleModalOpen}
       />
 

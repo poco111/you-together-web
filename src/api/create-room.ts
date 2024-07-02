@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { TRoomCreationPayload } from '@/schemas/room-creation';
+import { TRoomCreationPayload } from '@/schemas/rooms';
 
 export const createRoom = async ({
   title,
@@ -24,6 +24,6 @@ export const createRoom = async ({
 
     return response;
   } catch (error) {
-    throw error;
+    throw new Error('방 생성에 실패하였습니다.');
   }
 };

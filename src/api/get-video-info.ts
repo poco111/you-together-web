@@ -1,12 +1,18 @@
 import axios from 'axios';
+import { extractYouTubeVideoId } from '@/service/video';
 
 export const getVideoInfo = async (videoId: string) => {
+  const extractedYouTubeVideoId = extractYouTubeVideoId(videoId);
+  
+  if (!extractedYouTubeVideoId) {
+    throw new Error('유효하지 않은 YouTube URL입니다.');
+  }
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_GOOGLE_API_URL}`,
       {
         params: {
-          id: videoId,
+          id: extractedYouTubeVideoId,
           key: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
           part: 'snippet,contentDetails',
           fields:
@@ -26,6 +32,6 @@ export const getVideoInfo = async (videoId: string) => {
 
     return customResponse;
   } catch (error) {
-    throw new Error('데이터를 불러오지 못했습니다.');
+    throw new Error('YouTube 영상의 데이터를 불러오지 못했습니다.');
   }
 };

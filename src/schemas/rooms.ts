@@ -34,6 +34,15 @@ export const roomTitleChangeSchema = z.object({
     .max(20, '방 제목은 최대 20자 입니다.'),
 });
 
+export const roomSearchSchema = z.object({
+  searchKeyword: z
+    .string()
+    .regex(/^[ㄱ-ㅎ가-힣a-zA-Z0-9\s]*$/, '특수문자는 사용할 수 없습니다.')
+    .optional(),
+});
+
 export type TRoomCreationPayload = z.infer<typeof roomCreationSchema>;
 
 export type TRoomTitleChangePayload = z.infer<typeof roomTitleChangeSchema>;
+
+export type TRoomSearchPayload = z.infer<typeof roomSearchSchema>;

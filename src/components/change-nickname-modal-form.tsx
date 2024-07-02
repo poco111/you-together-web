@@ -119,7 +119,7 @@ const ChangeNicknameModal = ({
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <ModalContent>
-        {() => (
+        {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1">
               닉네임 변경하기
