@@ -66,7 +66,6 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
         !isAtBottom &&
         prevLastChatIdRef.current !== chats[chats.length - 1]?.chatId
       ) {
-        console.log(2);
         setNewMessageCount(
           chats[chats.length - 1]?.chatId - prevLastChatIdRef.current!
         );
