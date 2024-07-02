@@ -341,14 +341,17 @@ const useSocket = ({
 
   const sendChat = (content: string) => {
     if (!clientRef.current) return;
-
-    clientRef.current.publish({
-      destination: `/pub/messages/chat`,
-      body: JSON.stringify({
-        roomCode,
-        content,
-      }),
-    });
+    try {
+      clientRef.current.publish({
+        destination: `/pub/messages/chat`,
+        body: JSON.stringify({
+          roomCode,
+          content,
+        }),
+      });
+    } catch (error) {
+      errorHandler('채팅 메시지를 전송하는 도중 오류가 발생했습니다.');
+    }
   };
 
   const sendVideoPlayerState = ({
@@ -364,15 +367,19 @@ const useSocket = ({
   }) => {
     if (!clientRef.current) return;
 
-    clientRef.current.publish({
-      destination: `/pub/messages/video`,
-      body: JSON.stringify({
-        roomCode,
-        playerState,
-        playerCurrentTime,
-        playerRate,
-      }),
-    });
+    try {
+      clientRef.current.publish({
+        destination: `/pub/messages/video`,
+        body: JSON.stringify({
+          roomCode,
+          playerState,
+          playerCurrentTime,
+          playerRate,
+        }),
+      });
+    } catch (error) {
+      errorHandler('비디오 상태를 전송하는 도중 오류가 발생했습니다.');
+    }
   };
 
   const isLoading = state.loading;
