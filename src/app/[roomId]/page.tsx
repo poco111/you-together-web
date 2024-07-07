@@ -78,7 +78,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
   const { mutate: changeUserRole } = useChangeRole();
 
-  const participantsList = participants?.[0]?.participants || [];
   const userHasVideoEditPermission =
     userInfo && hasVideoEditPermission(userInfo);
 
@@ -134,7 +133,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
         <div className="flex flex-col w-80 gap-2">
           <RoomInfo
             roomDetailInfo={roomDetailInfo}
-            participantsList={participantsList}
+            participantsList={participants}
             userInfo={userInfo}
           />
 
@@ -147,12 +146,12 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
           <Chat
             chats={chats}
             userInfo={userInfo}
-            participantsList={participantsList}
+            participantsList={participants}
             sendChat={sendChat}
           />
 
           <ParticipantsList
-            participantsList={participantsList}
+            participantsList={participants}
             userInfo={userInfo}
             changeUserRole={changeUserRole}
             roomCode={roomCode}

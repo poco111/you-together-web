@@ -217,8 +217,32 @@ const useSocket = ({
                       }
                     );
                     break;
+                  // case 'PARTICIPANTS':
+                  //   queryClient.setQueryData<TWebSocketMessage[]>(
+                  //     ['participants', roomCode],
+                  //     () => {
+                  //       const userInfo = queryClient.getQueryData<TUserInfo>([
+                  //         'userInfo',
+                  //         roomCode,
+                  //       ]);
+                  //       response.participants.forEach((participant) => {
+                  //         if (
+                  //           participant.userId === userInfo?.userId &&
+                  //           participant.role !== userInfo?.role
+                  //         ) {
+                  //           const newUserInfo = participant;
+                  //           queryClient.setQueryData<TUserInfo>(
+                  //             ['userInfo', roomCode],
+                  //             newUserInfo
+                  //           );
+                  //         }
+                  //       });
+                  //       return [response];
+                  //     }
+                  //   );
+                  //   break;
                   case 'PARTICIPANTS':
-                    queryClient.setQueryData<TWebSocketMessage[]>(
+                    queryClient.setQueryData<TUserInfo[]>(
                       ['participants', roomCode],
                       () => {
                         const userInfo = queryClient.getQueryData<TUserInfo>([
@@ -237,7 +261,16 @@ const useSocket = ({
                             );
                           }
                         });
-                        return [response];
+                        const participants = response.participants.map(
+                          (item) => {
+                            return {
+                              userId: item.userId,
+                              nickname: item.nickname,
+                              role: item.role,
+                            };
+                          }
+                        );
+                        return participants;
                       }
                     );
                     break;
