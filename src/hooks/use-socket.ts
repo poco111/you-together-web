@@ -242,9 +242,19 @@ const useSocket = ({
                     );
                     break;
                   case 'PLAYLIST':
-                    queryClient.setQueryData<TWebSocketMessage[]>(
+                    queryClient.setQueryData<TPlaylist[]>(
                       ['playlist', roomCode],
-                      [response]
+                      () => {
+                        const playlist = response.playlist.map((item) => {
+                          return {
+                            videoNumber: item.videoNumber,
+                            videoTitle: item.videoTitle,
+                            thumbnail: item.thumbnail,
+                            channelTitle: item.channelTitle,
+                          };
+                        });
+                        return playlist;
+                      }
                     );
                     break;
                   case 'VIDEO_SYNC_INFO':

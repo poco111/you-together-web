@@ -22,12 +22,7 @@ interface IVideoProps {
     playerCurrentTime: number;
     playerRate: number;
   }) => void;
-  playlistInfo: Array<{
-    videoNumber: number;
-    videoTitle: string;
-    thumbnail: string;
-    channelTitle: string;
-  }>;
+  playlist: TPlaylist[];
   videoTitleInfo: TVideoTitleInfo | undefined;
   videoSyncInfo: TVideoSyncInfo | undefined;
 }
@@ -35,7 +30,7 @@ interface IVideoProps {
 const VideoPlayer = ({
   roomCode,
   sendVideoPlayerState,
-  playlistInfo,
+  playlist,
   userHasVideoEditPermission,
   videoSyncInfo,
   videoTitleInfo,
@@ -247,15 +242,15 @@ const VideoPlayer = ({
         <Button
           size="sm"
           variant="light"
-          disabled={!userHasVideoEditPermission || playlistInfo?.length === 0}
+          disabled={!userHasVideoEditPermission || playlist?.length === 0}
           onPress={() =>
-            playNextVideo({ videoNumber: playlistInfo[0].videoNumber })
+            playNextVideo({ videoNumber: playlist[0].videoNumber })
           }
         >
           <Icon
             name="playNextVideo"
             className={`size-5 ${
-              !userHasVideoEditPermission || playlistInfo?.length === 0
+              !userHasVideoEditPermission || playlist?.length === 0
                 ? 'text-neutral-700'
                 : 'text-emerald-500'
             }`}
