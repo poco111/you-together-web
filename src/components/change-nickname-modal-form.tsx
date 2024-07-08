@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import {
   Button,
   Modal,
@@ -9,7 +9,7 @@ import {
   ModalBody,
   Input,
 } from '@nextui-org/react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   TNicknameChangePayload,
@@ -18,6 +18,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import useChangeNickname from '@/hooks/use-change-nickname';
 import useCheckDuplicateNickname from '@/hooks/use-check-duplicate-nickname';
+import { useDebounce } from '@/hooks/use-debounce';
 
 const ChangeNicknameModal = ({
   isOpen,
@@ -33,63 +34,49 @@ const ChangeNicknameModal = ({
   const queryClient = useQueryClient();
   const userInfo = queryClient.getQueryData<TUserInfo>(['userInfo', roomCode]);
   const {
-    register,
+    control,
     handleSubmit,
     setError,
     watch,
     clearErrors,
+    setValue,
     formState: { errors: formErrors },
   } = useForm<TNicknameChangePayload>({
     resolver: zodResolver(nicknameChangeSchema(userInfo?.nickname || '')),
+    defaultValues: { newNickname: '' },
     mode: 'onChange',
   });
 
   const { mutate: changeNickname } = useChangeNickname();
   const newNickname = watch('newNickname');
-  const prevNickname = useRef<string | null>(null);
+  const debouncedNickname = useDebounce(
+    formErrors.newNickname ? '' : newNickname,
+    300
+  );
 
   const {
     data: checkDuplicateData,
     refetch: checkDuplicate,
-    isLoading,
-    isError,
-    isSuccess,
+    isLoading: checkDuplicateLoading,
+    isError: checkDuplicateError,
   } = useCheckDuplicateNickname({
-    newNickname: newNickname,
+    newNickname: debouncedNickname,
   });
 
   useEffect(() => {
-    if (prevNickname.current === newNickname) {
-      if (checkDuplicateData?.data.nicknameIsUnique === false) {
-        setError('newNickname', {
-          type: 'duplicate_string',
-          message: '이미 사용중인 닉네임입니다',
-        });
-      }
-      return;
+    if (!formErrors.newNickname && debouncedNickname) {
+      checkDuplicate();
     }
-    if (formErrors.newNickname?.type === 'duplicate_string') {
-      clearErrors('newNickname');
-      queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
-        ['nickname'],
-        () => null
-      );
-    }
+  }, [debouncedNickname, formErrors.newNickname, checkDuplicate]);
 
-    if (checkDuplicateData?.data.nicknameIsUnique !== null) {
-      queryClient.setQueryData<TCheckDuplicateNicknameData | null>(
-        ['nickname'],
-        () => null
-      );
+  useEffect(() => {
+    if (checkDuplicateData?.data.nicknameIsUnique === false) {
+      setError('newNickname', {
+        type: 'duplicate_string',
+        message: '이미 사용중인 닉네임입니다',
+      });
     }
-  }, [
-    newNickname,
-    formErrors,
-    clearErrors,
-    queryClient,
-    checkDuplicateData,
-    setError,
-  ]);
+  }, [checkDuplicateData?.data.nicknameIsUnique, setError]);
 
   const handleNicknameChange: SubmitHandler<TNicknameChangePayload> = ({
     newNickname,
@@ -111,11 +98,6 @@ const ChangeNicknameModal = ({
     );
   };
 
-  const handleCheckDuplicate = () => {
-    prevNickname.current = newNickname;
-    checkDuplicate();
-  };
-
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <ModalContent>
@@ -130,43 +112,29 @@ const ChangeNicknameModal = ({
                 onSubmit={handleSubmit(handleNicknameChange)}
               >
                 <div className="flex items-center gap-4">
-                  <Input
-                    defaultValue=""
-                    label="Nickname"
-                    placeholder="변경할 닉네임을 입력하세요"
-                    isInvalid={!!formErrors.newNickname}
-                    {...register('newNickname')}
+                  <Controller
+                    name="newNickname"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        placeholder="변경할 닉네임을 입력하세요"
+                        onClear={() => {
+                          setValue('newNickname', '');
+                          clearErrors('newNickname');
+                        }}
+                        isInvalid={Boolean(formErrors.newNickname)}
+                        errorMessage={formErrors.newNickname?.message}
+                        value={newNickname}
+                      />
+                    )}
                   />
-                  <Button
-                    type="button"
-                    onPress={handleCheckDuplicate}
-                    disabled={
-                      !!formErrors.newNickname ||
-                      !newNickname ||
-                      isLoading ||
-                      checkDuplicateData?.data.nicknameIsUnique === false
-                    }
-                    className={`${
-                      !!formErrors.newNickname ||
-                      !newNickname ||
-                      isLoading ||
-                      checkDuplicateData?.data.nicknameIsUnique === false
-                        ? 'opacity-50 cursor-not-allowed'
-                        : ''
-                    }`}
-                  >
-                    중복확인
-                  </Button>
                 </div>
                 <div className="text-xs pl-1">
-                  {isSuccess &&
-                    !formErrors.newNickname &&
+                  {!formErrors.newNickname &&
+                    !!newNickname &&
                     checkDuplicateData?.data.nicknameIsUnique === true &&
-                    `사용가능한 닉네임입니다.`}
-                </div>
-                <div className="text-xs text-textDanger pl-1 mt-1.5">
-                  {!!formErrors.newNickname?.message &&
-                    formErrors.newNickname?.message}
+                    `사용가능한 닉네임입니다`}
                 </div>
                 <div className="w-full mt-5 flex justify-evenly">
                   <Button
@@ -184,22 +152,20 @@ const ChangeNicknameModal = ({
                     variant="light"
                     type="submit"
                     className={`flex-grow ${
-                      (isSuccess &&
-                        checkDuplicateData?.data.nicknameIsUnique !== true) ||
-                      isLoading ||
                       !!formErrors.newNickname ||
-                      checkDuplicateData?.data.nicknameIsUnique === false ||
-                      isError
+                      !newNickname ||
+                      checkDuplicateLoading ||
+                      checkDuplicateError ||
+                      checkDuplicateData?.data.nicknameIsUnique === false
                         ? 'opacity-50 cursor-not-allowed'
                         : ''
                     }`}
                     disabled={
-                      (isSuccess &&
-                        checkDuplicateData?.data.nicknameIsUnique !== true) ||
-                      isLoading ||
                       !!formErrors.newNickname ||
-                      checkDuplicateData?.data.nicknameIsUnique === false ||
-                      isError
+                      !newNickname ||
+                      checkDuplicateLoading ||
+                      checkDuplicateError ||
+                      checkDuplicateData?.data.nicknameIsUnique === false
                     }
                   >
                     변경
