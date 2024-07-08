@@ -2,7 +2,7 @@
 
 import { ScrollShadow, Textarea, Button } from '@nextui-org/react';
 import { getNicknameFromUserId } from '@/service/user';
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Icon from '@/assets/icon';
 import { hasChatPermission } from '@/service/user';
 
@@ -31,36 +31,58 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
     useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const userHasChatPermission = userInfo && hasChatPermission(userInfo);
-  const prevChatsRef = useRef<TChatMessage[]>([]);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+  const prevLastChatIdRef = useRef<number | null>(null);
 
-  const initialScrollToBottom = () => {
+  const instantScrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
   };
-  const scrollToBottom = () => {
+
+  const smoothScrollToBottom = () => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
         top: chatContainerRef.current.scrollHeight,
         behavior: 'smooth',
       });
-      setShowScrollToBottomButton(false);
     }
   };
 
   useEffect(() => {
-    if (prevChatsRef.current.length === 0) {
-      initialScrollToBottom();
+    if (!prevLastChatIdRef.current) {
+      instantScrollToBottom();
+      prevLastChatIdRef.current = chats[chats.length - 1]?.chatId;
     }
-    prevChatsRef.current = chats;
-  }, [chats]);
+
+    if (chatContainerRef.current) {
+      const isAtBottom =
+        chatContainerRef.current.scrollHeight -
+          chatContainerRef.current.scrollTop <=
+        chatContainerRef.current.clientHeight;
+      if (
+        prevLastChatIdRef.current !== null &&
+        !isAtBottom &&
+        prevLastChatIdRef.current !== chats[chats.length - 1]?.chatId
+      ) {
+        setNewMessageCount(
+          chats[chats.length - 1]?.chatId - prevLastChatIdRef.current!
+        );
+      }
+
+      if (isAtBottom || !showScrollToBottomButton) {
+        smoothScrollToBottom();
+      }
+    }
+  }, [chats, showScrollToBottomButton]);
 
   const handleSendChat = (chat: string) => {
     if (!chat) return;
 
     sendChat(chat);
     setChatValue('');
+    instantScrollToBottom();
   };
 
   const handleChatKeyDown = (e: React.KeyboardEvent) => {
@@ -78,6 +100,10 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
           chatContainerRef.current.scrollTop <=
         chatContainerRef.current.clientHeight + 100;
       setShowScrollToBottomButton(!isAtBottom);
+      if (isAtBottom) {
+        setNewMessageCount(0);
+        prevLastChatIdRef.current = chats[chats.length - 1]?.chatId;
+      }
     }
   };
 
@@ -85,9 +111,10 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
     <div className="relative">
       <ScrollShadow
         hideScrollBar
-        className="w-full h-96 mb-3 overflow-y-auto"
+        className="w-full h-96 mb-3"
         ref={chatContainerRef}
         onScroll={handleScroll}
+        style={{ '--scroll-shadow-size': '0.5rem' } as React.CSSProperties}
       >
         {chats.map((chat) => {
           return chat.messageType === 'CHAT' ? (
@@ -124,10 +151,13 @@ const Chat = ({ chats, participantsList, userInfo, sendChat }: IChatProps) => {
 
       {showScrollToBottomButton && (
         <Button
-          onPress={scrollToBottom}
+          onPress={smoothScrollToBottom}
           className="absolute bottom-28 right-28 w-6 h-6"
         >
           <Icon name="arrowDown" />
+          {showScrollToBottomButton && newMessageCount > 0 && (
+            <span>({newMessageCount})</span>
+          )}
         </Button>
       )}
 

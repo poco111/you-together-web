@@ -20,7 +20,7 @@ import NavBar from '@/components/navbar';
 import Chat from '@/components/chat';
 import ParticipantsList from '@/components/participants-list';
 import VideoPlayer from '@/components/video-player';
-import Playlist from '@/components/playlist';
+import Playlist from '@/components/playlist/playlist';
 import RoomInfo from '@/components/room-info';
 import { hasVideoEditPermission } from '@/service/user';
 import { errorHandler } from '@/lib/query-client';
@@ -78,8 +78,6 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
 
   const { mutate: changeUserRole } = useChangeRole();
 
-  const participantsList = participants?.[0]?.participants || [];
-  const playlistInfo = playlist?.[0]?.playlist || [];
   const userHasVideoEditPermission =
     userInfo && hasVideoEditPermission(userInfo);
 
@@ -127,7 +125,7 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
         <VideoPlayer
           roomCode={roomCode}
           sendVideoPlayerState={sendVideoPlayerState}
-          playlistInfo={playlistInfo}
+          playlist={playlist}
           userHasVideoEditPermission={userHasVideoEditPermission}
           videoTitleInfo={videoTitleInfo}
           videoSyncInfo={videoSyncInfo}
@@ -135,24 +133,25 @@ const RoomPage = ({ params: { roomId } }: { params: { roomId: string } }) => {
         <div className="flex flex-col w-80 gap-2">
           <RoomInfo
             roomDetailInfo={roomDetailInfo}
-            participantsList={participantsList}
+            participantsList={participants}
             userInfo={userInfo}
           />
 
           <Playlist
-            playlistInfo={playlistInfo}
+            roomCode={roomCode}
+            playlist={playlist}
             userHasVideoEditPermission={userHasVideoEditPermission}
           />
 
           <Chat
             chats={chats}
             userInfo={userInfo}
-            participantsList={participantsList}
+            participantsList={participants}
             sendChat={sendChat}
           />
 
           <ParticipantsList
-            participantsList={participantsList}
+            participantsList={participants}
             userInfo={userInfo}
             changeUserRole={changeUserRole}
             roomCode={roomCode}

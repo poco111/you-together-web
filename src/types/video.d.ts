@@ -14,6 +14,8 @@ type TDeletePlaylistResponse = ApiResponse<null>;
 
 type TPlayNextVideoResponse = ApiResponse<null>;
 
+type TReorderPlaylistResponse = ApiResponse<null>;
+
 type TVideoTitleInfo = {
   videoTitle: string | null;
   channelTitle: string | null;
@@ -25,4 +27,11 @@ type TVideoSyncInfo = {
   playerCurrentTime: number;
   playerRate: number;
   videoNumber: number | null;
+};
+
+type TPlaylist = {
+  videoNumber: number;
+  videoTitle: string;
+  thumbnail: string;
+  channelTitle: string;
 };

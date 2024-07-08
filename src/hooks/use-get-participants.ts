@@ -5,7 +5,7 @@ interface useGetParticipantsProps {
 }
 
 const useGetParticipants = ({ roomCode }: useGetParticipantsProps) => {
-  return useQuery<TParticipantsInfoMessage[]>({
+  return useQuery<TUserInfo[]>({
     queryKey: ['participants', roomCode],
     enabled: false,
   });
