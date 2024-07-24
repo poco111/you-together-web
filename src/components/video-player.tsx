@@ -39,7 +39,6 @@ const VideoPlayer = ({
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const playerRef = useRef<YouTubePlayer | null>(null);
-  const [isSeeking, setIsSeeking] = useState<boolean>(false);
 
   const { mutate: playNextVideo } = usePlayNextVideo();
 
@@ -104,7 +103,6 @@ const VideoPlayer = ({
         videoSyncInfo?.playerCurrentTime &&
         Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
       ) {
-        setIsSeeking(true);
         playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime, true);
       }
 
@@ -162,22 +160,17 @@ const VideoPlayer = ({
         playerRate: event.target.getPlaybackRate(),
       });
     } else if (playerState[newPlayerState] === 'PAUSE') {
-      if (isSeeking) {
-        sendVideoPlayerState({
-          roomCode: roomCode,
-          playerState: 'PLAY',
-          playerCurrentTime: event.target.getCurrentTime(),
-          playerRate: event.target.getPlaybackRate(),
-        });
-        setIsSeeking(false);
-      } else {
-        sendVideoPlayerState({
-          roomCode: roomCode,
-          playerState: 'PAUSE',
-          playerCurrentTime: event.target.getCurrentTime(),
-          playerRate: event.target.getPlaybackRate(),
-        });
-      }
+      const playerCurrentTime = playerRef.current?.getCurrentTime();
+      const isSeeking =
+        videoSyncInfo?.playerCurrentTime &&
+        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 1;
+
+      sendVideoPlayerState({
+        roomCode: roomCode,
+        playerState: isSeeking ? 'PLAY' : 'PAUSE',
+        playerCurrentTime: event.target.getCurrentTime(),
+        playerRate: event.target.getPlaybackRate(),
+      });
     }
   };
 
