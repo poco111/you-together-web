@@ -11,6 +11,14 @@ export const metadata: Metadata = {
   title: 'You Together - 친구와 함께 동영상 시청',
   description:
     'You Together는 친구와 함께 YouTube 동영상을 실시간으로 시청하며 채팅할 수 있는 서비스입니다.',
+  openGraph: {
+    title: 'You Together - 친구와 함께 동영상 시청',
+    description:
+      'You Together는 친구와 함께 YouTube 동영상을 실시간으로 시청하며 채팅할 수 있는 서비스입니다.',
+    siteName: 'You Together - 친구와 함께 동영상 시청',
+    locale: 'ko_KR',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
