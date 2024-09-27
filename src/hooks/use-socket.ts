@@ -217,30 +217,6 @@ const useSocket = ({
                       }
                     );
                     break;
-                  // case 'PARTICIPANTS':
-                  //   queryClient.setQueryData<TWebSocketMessage[]>(
-                  //     ['participants', roomCode],
-                  //     () => {
-                  //       const userInfo = queryClient.getQueryData<TUserInfo>([
-                  //         'userInfo',
-                  //         roomCode,
-                  //       ]);
-                  //       response.participants.forEach((participant) => {
-                  //         if (
-                  //           participant.userId === userInfo?.userId &&
-                  //           participant.role !== userInfo?.role
-                  //         ) {
-                  //           const newUserInfo = participant;
-                  //           queryClient.setQueryData<TUserInfo>(
-                  //             ['userInfo', roomCode],
-                  //             newUserInfo
-                  //           );
-                  //         }
-                  //       });
-                  //       return [response];
-                  //     }
-                  //   );
-                  //   break;
                   case 'PARTICIPANTS':
                     queryClient.setQueryData<TUserInfo[]>(
                       ['participants', roomCode],

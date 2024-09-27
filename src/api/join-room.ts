@@ -20,7 +20,7 @@ export const joinRoom = async ({
     );
 
     return response;
-  } catch (error: unknown) {
+  } catch (error) {
     if (axios.isAxiosError(error)) {
       throw error;
     } else {

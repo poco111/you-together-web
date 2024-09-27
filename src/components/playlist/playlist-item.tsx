@@ -92,12 +92,17 @@ const PlaylistItem = ({
       }`}
       ref={dropRef}
     >
-      <div className="flex gap-4 items-center">
-        <div ref={dragRef}>
+      <div className="flex gap-4 items-center w-full">
+        <div
+          ref={dragRef}
+          className={`${
+            !userHasVideoEditPermission ? 'pointer-events-none' : ''
+          }`}
+        >
           <Icon
             name="gripLines"
             className={`${
-              userHasVideoEditPermission ? 'cursor-pointer' : 'invisible'
+              userHasVideoEditPermission ? 'cursor-pointer' : 'text-gray-400'
             }`}
           />
         </div>
@@ -120,7 +125,7 @@ const PlaylistItem = ({
               <Icon
                 name="trashCan"
                 className={`${
-                  !userHasVideoEditPermission ? 'invisible' : null
+                  !userHasVideoEditPermission ? 'text-gray-400' : null
                 }`}
               />
             </button>

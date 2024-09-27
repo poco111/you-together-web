@@ -9,6 +9,7 @@ export const useGetRooms = (keyword = '') => {
       initialPageParam: 0,
       getNextPageParam: ({ hasNext, pageNumber }) =>
         hasNext ? pageNumber + 1 : null,
+      staleTime: 1000 * 60,
     });
 
   return { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage };

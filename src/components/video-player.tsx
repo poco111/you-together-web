@@ -103,10 +103,7 @@ const VideoPlayer = ({
         videoSyncInfo?.playerCurrentTime &&
         Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 0.6
       ) {
-        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime);
-        if (videoSyncInfo.playerState === 'PAUSE') {
-          playerRef.current?.pauseVideo();
-        }
+        playerRef.current?.seekTo(videoSyncInfo?.playerCurrentTime, true);
       }
 
       const playerCurrentRate = playerRef.current?.getPlaybackRate();
@@ -163,9 +160,14 @@ const VideoPlayer = ({
         playerRate: event.target.getPlaybackRate(),
       });
     } else if (playerState[newPlayerState] === 'PAUSE') {
+      const playerCurrentTime = playerRef.current?.getCurrentTime();
+      const isSeeking =
+        videoSyncInfo?.playerCurrentTime &&
+        Math.abs(playerCurrentTime - videoSyncInfo?.playerCurrentTime) > 1;
+
       sendVideoPlayerState({
         roomCode: roomCode,
-        playerState: 'PAUSE',
+        playerState: isSeeking ? 'PLAY' : 'PAUSE',
         playerCurrentTime: event.target.getCurrentTime(),
         playerRate: event.target.getPlaybackRate(),
       });
