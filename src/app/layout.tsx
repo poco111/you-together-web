@@ -18,6 +18,12 @@ export const metadata: Metadata = {
     siteName: 'You Together - 친구와 함께 동영상 시청',
     locale: 'ko_KR',
     type: 'website',
+    images: [
+      {
+        url: 'https://you-together-web.vercel.app/opengraph-image',
+        alt: 'You Together - 친구와 함께 youtube 시청',
+      },
+    ],
   },
 };
 
