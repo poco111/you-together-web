@@ -20,7 +20,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://you-together-web.vercel.app/opengraph-image',
+        url: `${
+          process.env.NEXT_PUBLIC_VERCEL_URL ||
+          'https://you-together-web.vercel.app'
+        }/opengraph-image`,
         alt: 'You Together - 친구와 함께 youtube 시청',
       },
     ],
