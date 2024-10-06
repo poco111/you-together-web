@@ -24,10 +24,6 @@ const getOpenGraphImage = async () => {
     ),
     {
       ...size,
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=31536000, immutable', // 캐시 제어
-      },
     }
   );
 };
