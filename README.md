@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📼 You-Together 친구와 함께 Youtube 시청
 
-## Getting Started
+## Overview
 
-First, run the development server:
+#### 🔗 [배포 링크](https://you-together.site)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+#### 🔗 [API 문서 링크](https://api.you-together.site/docs/index.html)
+
+### 🙌 서비스 소개
+
+- 친구와 채팅하며 Youtube 영상을 함께 시청하는 서비스입니다.
+- 재생시간 동기화를 통해 Youtube 영상의 같은 구간을 함께 시청하는 것이 특징인 서비스입니다.
+
+### 🤝 팀원 구성
+
+👩‍💻 BE: [Hyun](https://github.com/ghkdgus29), [Fia](https://github.com/yeonise)<br>
+👨‍💻 FE: [poco](https://github.com/poco111)
+
+### 기술 스택
+
+Frontend: React, TypeScript, Next.js, Tailwind CSS
+
+### 작업 관리
+
+주 3회 정기 회의를 통해 작업 순서 및 방향성에 대해 고민을 나누고 작업 내용을 공유하여 [회의록](https://jamstorage.notion.site/4816874618ea42cd93662c86644ac86d?pvs=4) 작성
+
+---
+
+## 프로젝트 구조
+
+```
+├── README.md
+├── .eslintrc.json
+├── .gitignore
+├── package-lock.json
+├── package.json
+│
+└── src
+     ├── api
+     │     ├── add-playlist.ts
+     │     ├── change-role.ts
+     │     ├── get-rooms.ts
+     │     ├── get-video-info.ts
+     │     └── reorder-playlist.ts
+     │          .
+     │          .
+     │          .
+     ├── app
+     │     ├── [roomId]
+     │     ├── globals.css
+     │     ├── layout.tsx
+     │     ├── opengraph-image.tsx
+     │     ├── page.tsx
+     │     └── providers.tsx
+     ├── asset
+     │     └── icon.tsx
+     ├── components
+     │     ├── playlist
+     │     │     ├── playlist-item.tsx
+     │     │     └── playlist.tsx
+     │     ├── chat.tsx
+     │     ├── navbar.tsx
+     │     ├── participants-list.tsx
+     │     ├── room-table.tsx
+     │     └── video-player.tsx
+     │          .
+     │          .
+     │          .
+     ├── hooks
+     │     ├── use-add-playlist.ts
+     │     ├── use-change-role.ts
+     │     ├── use-get-rooms.ts
+     │     ├── use-get-video-info.ts
+     │     └── use-reorder-playlist.ts
+     ├── lib
+     │     └── query-client.ts
+     ├── schemas
+     │     ├── change-nickname.ts
+     │     └── rooms.ts
+     ├── service
+     │     ├── user.ts
+     │     └── video.ts
+     ├── types
+     │     ├── api.d.ts
+     │     ├── change-role.d.ts
+     │     ├── change-nickname.d.ts
+     │     ├── join-room.d.ts
+     │     └── message.d.ts
+     │          .
+     │          .
+     │          .
+     └── paths.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 주요기능
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### 💬 실시간 채팅
 
-## Learn More
+- 웹 소켓을 사용하여 실시간 채팅을 통해 YouTube 영상을 주제로 소통하거나, 다양한 주제에 대해 자유롭게 대화할 수 있습니다.
 
-To learn more about Next.js, take a look at the following resources:
+![실시간 채팅](https://github.com/user-attachments/assets/3971ae81-9c1e-49d0-b471-814db00070f1)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### ⏱️ 재생시간 동기화
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- 재싱시간 동기화를 통해 같은 방에 있는 사용자는 동일한 시간대의 youtube 영상을 시청할 수 있습니다.
 
-## Deploy on Vercel
+![영상싱크 수정(용량 수정)](https://github.com/user-attachments/assets/7892fa10-fa7a-4fc0-b6ab-9a7773001b37)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 방(공개방, 비공개방) 생성 및 입장
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- 사용자는 공개방 또는 비공개방을 생성할 수 있고 비공개방은 올바른 비밀번호를 입력해야 입장할 수 있습니다.
+
+![방 생성 및 입장](https://github.com/user-attachments/assets/c088e0d8-5962-427f-9202-400daa2bd30d)
+
+### ⌨️ 방 제목 검색
+
+- 특수문자를 제외한 원하는 키워드가 포함된 방을 검색할 수 있습니다.
+
+![방 제목 검색](https://github.com/user-attachments/assets/f686e905-6db5-445c-8838-2d144a526de9)
+
+### 📼 재생목록 추가, 삭제 및 순서 수정
+
+- 재생목록에 새로운 youtube 영상을 추가하거나 기존 영상을 삭제할 수 있습니다.
+
+- 재생목록에 있는 youtube 영상의 재생순서를 수정할 수 있습니다.
+
+![재생목록 추가, 제거 및 수정](https://github.com/user-attachments/assets/62c25196-63cb-4d30-8631-b21c1c39ccd8)
+
+### 닉네임 변경
+
+- 사용자의 입력값에 대해 즉시 유효성 및 중복 검사를 진행한 후 검사를 통과하면 닉네임을 변경할 수 있습니다.
+
+![닉네임 변경](https://github.com/user-attachments/assets/6837561c-e5b5-4127-b083-e8cd68e1b087)
+
+### 다른 사용자의 권한 변경
+
+- MANAGER 이상 권한을 가진 사용자는 다른 사용자의 권한을 변경할 수 있습니다.
+
+![다른 사용자 권한 변경](https://github.com/user-attachments/assets/6762f239-52cc-454e-9c4e-eecb914c3d5d)
+
+### 💪 사용자 권한에 따른 기능 구분
+
+**HOST** : 방 제목 변경 권한을 가지며, MANAGER 권한의 모든 기능을 수행할 수 있습니다.
+
+**MANAGER** : 다른 사용자의 권한을 변경할 수 있으며, EDITOR 권한의 모든 기능을 수행할 수 있습니다.
+
+**EDITOR** : 재생목록 관리 및 영상 싱크 조정이 가능하며, GUEST 권한의 모든 기능을 수행할 수 있습니다.
+
+**GUEST** :채팅이 가능하며, VIEWER 권한의 모든 기능을 수행할 수 있습니다.
+
+**VIEWER** : 영상 시청만 가능합니다.
+
+**모든 사용자** : 닉네임 변경
+
+- 해당 기능에 대한 권한이 없는 사용자의 경우, 알림을 통해 사용자에게 해당 기능에 대한 권한이 없음을 알려줍니다.
+
+  - 예를들어, 영상 싱크 조정이 불가능한 사용자의 경우에는 권한이 없다는 알림과 함께 영상 싱크는 이전과 동일하게 유지됩니다.
+
+---
+
+## 🔫 Trouble Shooting
+
+- [브라우저의 자동재생 정책으로 인한 문제](https://jamstorage.notion.site/970d801068c2438bbe91c076929b3d69?pvs=4)
+- [Third-Party 쿠키 이슈](https://jamstorage.notion.site/Third-Party-1f9be8be99fb41bd95f01af736177f94?pvs=4)
