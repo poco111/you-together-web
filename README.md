@@ -26,6 +26,74 @@ Frontend: React, TypeScript, Next.js, Tailwind CSS
 
 ---
 
+## 프로젝트 구조
+
+```
+├── README.md
+├── .eslintrc.json
+├── .gitignore
+├── package-lock.json
+├── package.json
+│
+└── src
+     ├── api
+     │     ├── add-playlist.ts
+     │     ├── change-role.ts
+     │     ├── get-rooms.ts
+     │     ├── get-video-info.ts
+     │     └── reorder-playlist.ts
+     │          .
+     │          .
+     │          .
+     ├── app
+     │     ├── [roomId]
+     │     ├── globals.css
+     │     ├── layout.tsx
+     │     ├── opengraph-image.tsx
+     │     ├── page.tsx
+     │     └── providers.tsx
+     ├── asset
+     │     └── icon.tsx
+     ├── components
+     │     ├── playlist
+     │     │     ├── playlist-item.tsx
+     │     │     └── playlist.tsx
+     │     ├── chat.tsx
+     │     ├── navbar.tsx
+     │     ├── participants-list.tsx
+     │     ├── room-table.tsx
+     │     └── video-player.tsx
+     │          .
+     │          .
+     │          .
+     ├── hooks
+     │     ├── use-add-playlist.ts
+     │     ├── use-change-role.ts
+     │     ├── use-get-rooms.ts
+     │     ├── use-get-video-info.ts
+     │     └── use-reorder-playlist.ts
+     ├── lib
+     │     └── query-client.ts
+     ├── schemas
+     │     ├── change-nickname.ts
+     │     └── rooms.ts
+     ├── service
+     │     ├── user.ts
+     │     └── video.ts
+     ├── types
+     │     ├── api.d.ts
+     │     ├── change-role.d.ts
+     │     ├── change-nickname.d.ts
+     │     ├── join-room.d.ts
+     │     └── message.d.ts
+     │          .
+     │          .
+     │          .
+     └── paths.ts
+```
+
+---
+
 ## 주요기능
 
 ### 💬 실시간 채팅
@@ -89,3 +157,10 @@ Frontend: React, TypeScript, Next.js, Tailwind CSS
 - 해당 기능에 대한 권한이 없는 사용자의 경우, 알림을 통해 사용자에게 해당 기능에 대한 권한이 없음을 알려줍니다.
 
   - 예를들어, 영상 싱크 조정이 불가능한 사용자의 경우에는 권한이 없다는 알림과 함께 영상 싱크는 이전과 동일하게 유지됩니다.
+
+---
+
+## 🔫 Trouble Shooting
+
+- [브라우저의 자동재생 정책으로 인한 문제](https://jamstorage.notion.site/970d801068c2438bbe91c076929b3d69?pvs=4)
+- [Third-Party 쿠키 이슈](https://jamstorage.notion.site/Third-Party-1f9be8be99fb41bd95f01af736177f94?pvs=4)
